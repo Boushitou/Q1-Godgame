@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Terrain
 {
@@ -14,7 +15,6 @@ namespace Terrain
         [Header("Noise Options")]
         [Range(0, 1)]
         [SerializeField] private float _frequency = default;
-
         [SerializeField] private float _heightMultiplier = default;
         [Range(0, 1)]
         [SerializeField] private float _lacunarity = default;
@@ -23,8 +23,8 @@ namespace Terrain
         [Range(1, 6)]
         [SerializeField] private int _octaveCount = default;
         [SerializeField] private bool _islandify = default;
-        
         [SerializeField] private uint _seed = default;
+        [FormerlySerializedAs("_terraceCount")] [SerializeField] private float _terrace = default;
 
         
         private Mesh _mesh;
@@ -128,10 +128,10 @@ namespace Terrain
                 amplitude *= _persistence;
                 currentFrequency /= _lacunarity;
 
-                height *= 10f;
+                height *= _terrace;
 
                 int heightInt = (int)height;
-                height = (float)heightInt / 10;
+                height = (float)heightInt / _terrace;
             }
             
             return height * _heightMultiplier;
