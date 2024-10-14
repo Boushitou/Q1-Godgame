@@ -39,7 +39,6 @@ public class PlayerController : MonoBehaviour
         float movementX = CustomInputSystem.GetAxis("Horizontal");
         float movementY = CustomInputSystem.GetAxis("Vertical");
         
-        Debug.Log($"x axis : {movementX} / y axis : {movementY}");
         _cameraMovement.Move(movementX, movementY);
     }
 }
