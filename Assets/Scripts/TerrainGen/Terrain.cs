@@ -37,6 +37,8 @@ namespace TerrainGen
         private int _chunkVisibleInViewDst;
         private Vector2Int _currentChunkCoord;
         private Dictionary<Vector2Int, GameObject> _chunks = new Dictionary<Vector2Int, GameObject>();
+        private List<Vector2Int> _currentlyVisibleChunks = new List<Vector2Int>();
+
 
         // private void Update()
         // {
@@ -83,6 +85,8 @@ namespace TerrainGen
 
         private void UpdateVisibleChunks()
         {
+            HashSet<Vector2Int> newVisibleChunks = new HashSet<Vector2Int>();
+            
             _currentChunkCoord.x = Mathf.RoundToInt(_camera.position.x / _meshSize);
             _currentChunkCoord.y = Mathf.RoundToInt(_camera.position.z / _meshSize);
 
@@ -91,6 +95,7 @@ namespace TerrainGen
                 for (int x = -_chunkVisibleInViewDst; x <= _chunkVisibleInViewDst; x++)
                 {
                     Vector2Int viewedChunkCord = new Vector2Int(_currentChunkCoord.x + x, _currentChunkCoord.y + y);
+                    newVisibleChunks.Add(viewedChunkCord);
 
                     if (_chunks.ContainsKey(viewedChunkCord))
                     {
@@ -109,6 +114,16 @@ namespace TerrainGen
                     }
                 }
             }
+            //Deactivate chunks that are not visible
+            foreach (Vector2Int coord in _currentlyVisibleChunks)
+            {
+                if (!newVisibleChunks.Contains(coord))
+                {
+                    _chunks[coord].SetActive(false);
+                }
+            }
+            
+            _currentlyVisibleChunks = new List<Vector2Int>(newVisibleChunks);
         }
     }
 }
