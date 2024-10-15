@@ -5,6 +5,8 @@ namespace TerrainGen
 {
     public class TerrainGeneration : MonoBehaviour
     {
+        public Vector2Int _chunkCoord = new Vector2Int();
+        
         private List<Vector3> _vertices = new List<Vector3>();
         private List<int> _triangles = new List<int>();
         private List<Vector2> _uvs = new List<Vector2>();
@@ -65,13 +67,30 @@ namespace TerrainGen
                 {
                     int cornerIndex = i + j * _parent._gridSize;
                     
-                    triangles.Add(cornerIndex);
-                    triangles.Add(cornerIndex + 1);
-                    triangles.Add(cornerIndex + 1 + _parent._gridSize);
+                    Vector3 v1 = heightmap[i, j];
+                    Vector3 v2 = heightmap[i + 1, j];
+                    Vector3 v3 = heightmap[i + 1, j + 1];
+
+                    if (v1.y > v2.y || v1.y > v3.y || v2.y > v3.y || v2.y > v1.y || v3.y > v1.y || v3.y > v2.y)
+                    {
+                        triangles.Add(cornerIndex);
+                        triangles.Add(cornerIndex + 1);
+                        triangles.Add(cornerIndex + _parent._gridSize);
+
+                        triangles.Add(cornerIndex + 1);
+                        triangles.Add(cornerIndex + 1 + _parent._gridSize);
+                        triangles.Add(cornerIndex + _parent._gridSize);
+                    }
+                    else
+                    {
+                        triangles.Add(cornerIndex);
+                        triangles.Add(cornerIndex + 1);
+                        triangles.Add(cornerIndex + 1 + _parent._gridSize);
                     
-                    triangles.Add(cornerIndex);
-                    triangles.Add(cornerIndex + 1 + _parent._gridSize);
-                    triangles.Add(cornerIndex + _parent._gridSize);
+                        triangles.Add(cornerIndex);
+                        triangles.Add(cornerIndex + 1 + _parent._gridSize);
+                        triangles.Add(cornerIndex + _parent._gridSize);  
+                    }
                 }
             }
 
