@@ -104,6 +104,7 @@ namespace TerrainGen
                     else
                     {
                         GameObject chunk = Instantiate(_chunkPrefab, new Vector3(viewedChunkCord.x * _meshSize, 0, viewedChunkCord.y * _meshSize), Quaternion.identity);
+                        chunk.transform.SetParent(transform);
                         
                         if (chunk.TryGetComponent(out TerrainGeneration terrainGeneration))
                         {

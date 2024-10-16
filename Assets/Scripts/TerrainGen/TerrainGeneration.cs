@@ -37,6 +37,7 @@ namespace TerrainGen
             _mesh.RecalculateNormals();
             
             _meshFilter.mesh = _mesh;
+            gameObject.AddComponent<MeshCollider>();
         }
 
         private List<Vector3> CreateVertices(Vector3[,] heightmap)
