@@ -57,9 +57,13 @@ namespace Player
 
       private void UsePower()
       {
-          if (Input.GetMouseButton(0))
+          if (Input.GetMouseButtonDown(0))
           {
-                _terrainModification.ModifyTerrain();
+                _terrainModification.ElevateTerrain();
+          }
+          else if (Input.GetMouseButtonDown(1))
+          {
+              _terrainModification.LowerTerrain();
           }
       }
   }  

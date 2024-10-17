@@ -3,13 +3,13 @@ using UnityEngine;
 
 namespace TerrainGen
 {
-    public class TerrainGeneration : MonoBehaviour
+    public class Chunk : MonoBehaviour
     {
-        public Vector2Int _chunkCoord = new Vector2Int();
-        
         private List<Vector3> _vertices = new List<Vector3>();
         private List<int> _triangles = new List<int>();
         private List<Vector2> _uvs = new List<Vector2>();
+        
+        public Dictionary<Vector2Int, Chunk> Neighbors = new Dictionary<Vector2Int, Chunk>();
         
         private Mesh _mesh;
         private MeshFilter _meshFilter;

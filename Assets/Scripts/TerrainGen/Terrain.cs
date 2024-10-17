@@ -75,7 +75,7 @@ namespace TerrainGen
                     GameObject chunk = Instantiate(_chunkPrefab, new Vector3(i * _meshSize, 0, j  * _meshSize), Quaternion.identity);
                     chunk.transform.parent = transform;
                     
-                    if (chunk.TryGetComponent(out TerrainGeneration terrainGeneration))
+                    if (chunk.TryGetComponent(out Chunk terrainGeneration))
                     {
                         terrainGeneration.GenerateMesh(this);
                     }
@@ -106,13 +106,14 @@ namespace TerrainGen
                         GameObject chunk = Instantiate(_chunkPrefab, new Vector3(viewedChunkCord.x * _meshSize, 0, viewedChunkCord.y * _meshSize), Quaternion.identity);
                         chunk.transform.SetParent(transform);
                         
-                        if (chunk.TryGetComponent(out TerrainGeneration terrainGeneration))
+                        if (chunk.TryGetComponent(out Chunk terrainGeneration))
                         {
-                            terrainGeneration._chunkCoord = viewedChunkCord;
-                            terrainGeneration.GenerateMesh(this);
+                             terrainGeneration.GenerateMesh(this);
                             _chunks.Add(viewedChunkCord,  chunk);
                         }
                     }
+                    
+                    UpdateChunkNeighbors(viewedChunkCord);
                 }
             }
             //Deactivate chunks that are not visible
@@ -125,6 +126,38 @@ namespace TerrainGen
             }
             
             _currentlyVisibleChunks = new List<Vector2Int>(newVisibleChunks);
+        }
+
+        private void UpdateChunkNeighbors(Vector2Int chunkCoord)
+        {
+            Chunk currentChunk = _chunks[chunkCoord].GetComponent<Chunk>();
+            
+            if (!currentChunk)
+                return;
+            
+            Vector2Int[] neighborsOffsets = new Vector2Int[]
+            {
+                new Vector2Int(0, 1),
+                new Vector2Int(1, 0),
+                new Vector2Int(0, -1),
+                new Vector2Int(-1, 0),
+                new Vector2Int(1, 1),
+                new Vector2Int(1, -1),
+                new Vector2Int(-1, 1),
+                new Vector2Int(-1, -1),
+            };
+
+            foreach (Vector2Int offset in neighborsOffsets)
+            {
+                Vector2Int neighborCoord = chunkCoord + offset;
+
+                if (_chunks.ContainsKey(neighborCoord))
+                {
+                    Chunk neighborChunk = _chunks[neighborCoord].GetComponent<Chunk>();
+                    currentChunk.Neighbors[neighborCoord] = neighborChunk;
+                    neighborChunk.Neighbors[chunkCoord] = currentChunk;
+                }
+            }
         }
     }
 }
