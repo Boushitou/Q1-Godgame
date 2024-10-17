@@ -1,14 +1,17 @@
 using UnityEngine;
+using TerrainModif;
 
 namespace Player
 {
   public class PlayerController : MonoBehaviour
   {
       private CameraMovement _cameraMovement;
+      private TerrainModification _terrainModification;
       // Start is called before the first frame update
       void Start()
       {
           _cameraMovement = GetComponent<CameraMovement>();
+          _terrainModification = GetComponent<TerrainModification>();
       }
   
       // Update is called once per frame
@@ -18,6 +21,7 @@ namespace Player
           PauseInput();
           MovementInput();
           ZoomInput();
+          UsePower();
       }
   
       private void SpellBarInput()
@@ -49,6 +53,14 @@ namespace Player
           float zoom = Input.mouseScrollDelta.y;
           
           _cameraMovement.Zoom(zoom);
+      }
+
+      private void UsePower()
+      {
+          if (Input.GetMouseButton(0))
+          {
+                _terrainModification.ModifyTerrain();
+          }
       }
   }  
 }
