@@ -818,7 +818,6 @@ MonoBehaviour:
   _lacunarity: 1
   _persistence: 1
   _octaveCount: 6
-  _islandify: 0
   _seed: 14
   _terrace: 10
   _chunkPrefab: {fileID: 6311001271108563835, guid: b4aa4c002d5215448b7a5be5331eee96,

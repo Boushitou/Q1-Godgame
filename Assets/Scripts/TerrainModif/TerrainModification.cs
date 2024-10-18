@@ -22,40 +22,40 @@ namespace TerrainModif
                 return;
 
             MeshCollider meshCollider = hit.collider as MeshCollider;
-            Mesh mesh = meshCollider.sharedMesh;
-            
-            if (meshCollider == null || mesh == null)
+            if (meshCollider == null)
                 return;
-
-            Vector3[] vertices = mesh.vertices;
-            ModifyVertices(vertices, meshCollider, hit.point, direction);
- 
-            Chunk chunk = meshCollider.GetComponent<Chunk>();
-            if (chunk)
-            {
-                foreach (Chunk neighbor in chunk.Neighbors.Values)
-                {
-                    MeshCollider neighborMeshCollider = neighbor.GetComponent<MeshCollider>();
-                    if (neighborMeshCollider)
-                    {
-                        Mesh neighborMesh = neighborMeshCollider.sharedMesh;
-                        if (neighborMesh)
-                        {
-                            Vector3[] neighborVertices = neighborMesh.vertices;
-                            ModifyVertices(neighborVertices, neighborMeshCollider, hit.point, direction);
-                            neighborMesh.SetVertices(neighborVertices);
-                            neighborMesh.RecalculateNormals();
-                            neighborMesh.RecalculateBounds();
-                            neighborMeshCollider.sharedMesh = neighborMesh;
-                        }
-                    }
-                }
-            }
             
-            mesh.SetVertices(vertices);
-            mesh.RecalculateNormals();
-            mesh.RecalculateBounds();
-            meshCollider.sharedMesh = mesh;
+            Chunk chunk = meshCollider.GetComponent<Chunk>();
+            if (chunk == null)
+                return;
+            
+            Mesh[] meshes = chunk.GetLODMeshes();
+            
+            foreach (Chunk neighbor in chunk.Neighbors.Values)
+            {
+                MeshCollider neighborMeshCollider = neighbor.GetComponent<MeshCollider>();
+                    
+                Mesh[] neighborMeshes = neighbor.GetLODMeshes();
+                foreach (Mesh neighborMesh in neighborMeshes)
+                {
+                    Vector3[] neighborVertices = neighborMesh.vertices;
+                    ModifyVertices(neighborVertices, neighborMeshCollider, hit.point, direction);
+                    neighborMesh.SetVertices(neighborVertices);
+                    neighborMesh.RecalculateNormals();
+                    neighborMesh.RecalculateBounds();
+                }
+                neighborMeshCollider.sharedMesh = neighbor.CurrentMesh;
+            }
+
+            foreach (Mesh mesh in meshes)
+            {
+                Vector3[] vertices = mesh.vertices;
+                ModifyVertices(vertices, meshCollider, hit.point, direction);
+                mesh.SetVertices(vertices);
+                mesh.RecalculateNormals();
+                mesh.RecalculateBounds();
+            }
+            meshCollider.sharedMesh = chunk.CurrentMesh;
         }
 
         private Vector3 GetHighestVertices(Vector3[] vertices)
@@ -87,12 +87,6 @@ namespace TerrainModif
                     vertices[i] += direction;
                 }
             }
-        }
-        
-        private bool OverlapWithNeighbors()
-        {
-            
-            return false;
         }
 
         public void ElevateTerrain()

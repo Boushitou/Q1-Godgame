@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace TerrainGen
 {
@@ -9,10 +10,10 @@ namespace TerrainGen
         private List<int> _triangles = new List<int>();
         private List<Vector2> _uvs = new List<Vector2>();
         
+        public Mesh CurrentMesh { get; private set; }
         public Dictionary<Vector2Int, Chunk> Neighbors = new Dictionary<Vector2Int, Chunk>();
         private Mesh[] _lodMeshes = new Mesh[3];
         
-        private Mesh _currentMesh;
         private MeshFilter _meshFilter;
         private Terrain _parent;
         private MeshCollider _meshCollider;
@@ -45,37 +46,16 @@ namespace TerrainGen
                 gridSize /= 2;
             }
             
+            //stitch edge to prevent gaps
+            foreach (Chunk neighbor in Neighbors.Values)
+            {
+                StitchEdges(neighbor, _parent._gridSize);
+            }
+            
             _meshFilter.mesh = _lodMeshes[0];
-            _currentMesh = _lodMeshes[0];
+            CurrentMesh = _lodMeshes[0];
             _meshCollider.sharedMesh = _lodMeshes[0];
         }
-
-        // public void GenerateMesh(Terrain parent)
-        // {
-        //     _parent = parent;
-        //     
-        //     _mesh = new Mesh();
-        //     _meshFilter = GetComponent<MeshFilter>();
-        //     
-        //     _mesh.subMeshCount = 2;
-        //     
-        //     Vector3[,] heightmap = new Vector3[_parent._gridSize, _parent._gridSize];
-        //     
-        //     _vertices = CreateVertices(heightmap, _parent._gridSize);
-        //     _triangles = CreateTriangles(heightmap);
-        //     _uvs = CreateUvs();
-        //     
-        //     _mesh.SetVertices(_vertices);
-        //     _mesh.SetTriangles(_triangles, 0);
-        //     _mesh.SetUVs(0, _uvs);
-        //     _mesh.RecalculateBounds();
-        //     _mesh.RecalculateNormals();
-        //     
-        //     _meshFilter.mesh = _mesh;
-        //     gameObject.AddComponent<MeshCollider>();
-        //     
-        //     _lodMeshes[0] = _mesh;
-        // }
 
         private List<Vector3> CreateVertices(Vector3[,] heightmap, int gridSize)
         {
@@ -189,11 +169,58 @@ namespace TerrainGen
             else
                 newMesh = _lodMeshes[2];
 
-            if (_currentMesh != newMesh)
+            if (CurrentMesh != newMesh)
             {
                 _meshFilter.mesh = newMesh;
                 _meshCollider.sharedMesh = newMesh;
-                _currentMesh = newMesh;
+                CurrentMesh = newMesh;
+            }
+        }
+
+        public Mesh[] GetLODMeshes()
+        {
+            return _lodMeshes;
+        }
+
+        private List<int> GetEdgeVertices(int gridSize)
+        {
+            List<int> edgeVertices = new List<int>();
+            
+            for (int i = 0; i < gridSize; i++)
+            {
+                edgeVertices.Add(i);
+            }
+            
+            for (int i = gridSize * (gridSize - 1); i < gridSize * gridSize; i++)
+            {
+                edgeVertices.Add(i);
+            }
+
+            for (int i = 0; i < gridSize * gridSize; i += gridSize)
+            {
+                edgeVertices.Add(i);
+            }
+
+            for (int i = gridSize - 1; i < gridSize * gridSize; i += gridSize)
+            {
+                edgeVertices.Add(i);
+            }
+
+            return edgeVertices;
+        }
+
+        private void StitchEdges(Chunk neighbor, int gridSize)
+        {
+            List<int > edgeVertices = GetEdgeVertices(gridSize);
+            List<int> neighborEdgeVertices = neighbor.GetEdgeVertices(gridSize);
+            
+            for (int i = 0; i < edgeVertices.Count; i++)
+            {
+               Vector3 vertex = _vertices[edgeVertices[i]];
+                Vector3 neighborVertex = neighbor._vertices[neighborEdgeVertices[i]];
+
+                vertex.y = neighborVertex.y;
+                _vertices[edgeVertices[i]] = vertex;
             }
         }
     }
