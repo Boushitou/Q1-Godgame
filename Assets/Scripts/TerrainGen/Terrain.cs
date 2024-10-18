@@ -25,7 +25,6 @@ namespace TerrainGen
         public float _persistence = default;
         [Range(1, 20)] 
         public int _octaveCount = default;
-        public bool _islandify = default;
         public uint _seed = default;
         public int _terrace = default;
         
@@ -64,6 +63,7 @@ namespace TerrainGen
         private void Update()
         {
             UpdateVisibleChunks();
+            UpdateChunkLOD();
         }
 
         private void GenerateChunks()
@@ -77,7 +77,7 @@ namespace TerrainGen
                     
                     if (chunk.TryGetComponent(out Chunk terrainGeneration))
                     {
-                        terrainGeneration.GenerateMesh(this);
+                        terrainGeneration.GenerateMeshes(this);
                     }
                 }
             }
@@ -108,7 +108,7 @@ namespace TerrainGen
                         
                         if (chunk.TryGetComponent(out Chunk terrainGeneration))
                         {
-                             terrainGeneration.GenerateMesh(this);
+                             terrainGeneration.GenerateMeshes(this);
                             _chunks.Add(viewedChunkCord,  chunk);
                         }
                     }
@@ -145,7 +145,7 @@ namespace TerrainGen
                 new Vector2Int(1, -1),
                 new Vector2Int(-1, 1),
                 new Vector2Int(-1, -1),
-            };
+            }; //Every neighbors coordinate
 
             foreach (Vector2Int offset in neighborsOffsets)
             {
@@ -156,6 +156,18 @@ namespace TerrainGen
                     Chunk neighborChunk = _chunks[neighborCoord].GetComponent<Chunk>();
                     currentChunk.Neighbors[neighborCoord] = neighborChunk;
                     neighborChunk.Neighbors[chunkCoord] = currentChunk;
+                }
+            }
+        }
+
+        private void UpdateChunkLOD()
+        {
+            foreach (GameObject chunk in _chunks.Values)
+            {
+                if (chunk.TryGetComponent(out Chunk chunkComponent))
+                {
+                    float distance = Vector3.Distance(_camera.transform.position, chunk.transform.position);
+                    chunkComponent.UpdateLOD(distance);
                 }
             }
         }

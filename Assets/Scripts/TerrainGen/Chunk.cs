@@ -10,47 +10,84 @@ namespace TerrainGen
         private List<Vector2> _uvs = new List<Vector2>();
         
         public Dictionary<Vector2Int, Chunk> Neighbors = new Dictionary<Vector2Int, Chunk>();
+        private Mesh[] _lodMeshes = new Mesh[3];
         
-        private Mesh _mesh;
+        private Mesh _currentMesh;
         private MeshFilter _meshFilter;
         private Terrain _parent;
+        private MeshCollider _meshCollider;
 
-        public void GenerateMesh(Terrain parent)
+        public void GenerateMeshes(Terrain parent)
         {
             _parent = parent;
-            
-            _mesh = new Mesh();
             _meshFilter = GetComponent<MeshFilter>();
+            _meshCollider = GetComponent<MeshCollider>();
+            int gridSize = _parent._gridSize;
+
+            for (int i = 0; i < _lodMeshes.Length; i++)
+            {
+                Mesh mesh = new Mesh();
+                mesh.subMeshCount = 2;
             
-            _mesh.subMeshCount = 2;
+                Vector3[,] heightmap = new Vector3[gridSize, gridSize];
             
-            Vector3[,] heightmap = new Vector3[_parent._gridSize, _parent._gridSize];
+                _vertices = CreateVertices(heightmap, gridSize);
+                _triangles = CreateTriangles(heightmap, gridSize);
+                _uvs = CreateUvs(gridSize);
             
-            _vertices = CreateVertices(heightmap);
-            _triangles = CreateTriangles(heightmap);
-            _uvs = CreateUvs();
+                mesh.SetVertices(_vertices);
+                mesh.SetTriangles(_triangles, 0);
+                mesh.SetUVs(0, _uvs);
+                mesh.RecalculateBounds();
+                mesh.RecalculateNormals();
             
-            _mesh.SetVertices(_vertices);
-            _mesh.SetTriangles(_triangles, 0);
-            _mesh.SetUVs(0, _uvs);
-            _mesh.RecalculateBounds();
-            _mesh.RecalculateNormals();
+                _lodMeshes[i] = mesh;
+                gridSize /= 2;
+            }
             
-            _meshFilter.mesh = _mesh;
-            gameObject.AddComponent<MeshCollider>();
+            _meshFilter.mesh = _lodMeshes[0];
+            _currentMesh = _lodMeshes[0];
+            _meshCollider.sharedMesh = _lodMeshes[0];
         }
 
-        private List<Vector3> CreateVertices(Vector3[,] heightmap)
+        // public void GenerateMesh(Terrain parent)
+        // {
+        //     _parent = parent;
+        //     
+        //     _mesh = new Mesh();
+        //     _meshFilter = GetComponent<MeshFilter>();
+        //     
+        //     _mesh.subMeshCount = 2;
+        //     
+        //     Vector3[,] heightmap = new Vector3[_parent._gridSize, _parent._gridSize];
+        //     
+        //     _vertices = CreateVertices(heightmap, _parent._gridSize);
+        //     _triangles = CreateTriangles(heightmap);
+        //     _uvs = CreateUvs();
+        //     
+        //     _mesh.SetVertices(_vertices);
+        //     _mesh.SetTriangles(_triangles, 0);
+        //     _mesh.SetUVs(0, _uvs);
+        //     _mesh.RecalculateBounds();
+        //     _mesh.RecalculateNormals();
+        //     
+        //     _meshFilter.mesh = _mesh;
+        //     gameObject.AddComponent<MeshCollider>();
+        //     
+        //     _lodMeshes[0] = _mesh;
+        // }
+
+        private List<Vector3> CreateVertices(Vector3[,] heightmap, int gridSize)
         {
             List<Vector3> vertices = new List<Vector3>();
 
-            for (int i = 0; i < _parent._gridSize; i++)
+            for (int i = 0; i < gridSize; i++)
             {
-                for (int j = 0; j < _parent._gridSize; j++)
+                for (int j = 0; j < gridSize; j++)
                 {
-                    float step = _parent._meshSize / (_parent._gridSize - 1);
+                    float step = _parent._meshSize / (gridSize - 1);
                     
-                    heightmap[i, j] = new Vector3(i * step, GetHeight(i, j), j * step);
+                    heightmap[i, j] = new Vector3(i * step, GetHeight(i, j, gridSize), j * step);
                     vertices.Add(heightmap[i, j]);
                 }
             }
@@ -58,7 +95,7 @@ namespace TerrainGen
             return vertices;
         }
 
-        private List<int> CreateTriangles(Vector3[,] heightmap)
+        private List<int> CreateTriangles(Vector3[,] heightmap, int gridSize)
         {
             List<int> triangles = new List<int>();
 
@@ -66,7 +103,7 @@ namespace TerrainGen
             {
                 for (int j = 0; j < heightmap.GetLength(1) - 1; j++)
                 {
-                    int cornerIndex = i + j * _parent._gridSize;
+                    int cornerIndex = i + j * gridSize;
                     
                     Vector3 v1 = heightmap[i, j];
                     Vector3 v2 = heightmap[i + 1, j];
@@ -76,21 +113,21 @@ namespace TerrainGen
                     {
                         triangles.Add(cornerIndex);
                         triangles.Add(cornerIndex + 1);
-                        triangles.Add(cornerIndex + _parent._gridSize);
+                        triangles.Add(cornerIndex + gridSize);
 
                         triangles.Add(cornerIndex + 1);
-                        triangles.Add(cornerIndex + 1 + _parent._gridSize);
-                        triangles.Add(cornerIndex + _parent._gridSize);
+                        triangles.Add(cornerIndex + 1 +gridSize);
+                        triangles.Add(cornerIndex + gridSize);
                     }
                     else
                     {
                         triangles.Add(cornerIndex);
                         triangles.Add(cornerIndex + 1);
-                        triangles.Add(cornerIndex + 1 + _parent._gridSize);
+                        triangles.Add(cornerIndex + 1 + gridSize);
                     
                         triangles.Add(cornerIndex);
-                        triangles.Add(cornerIndex + 1 + _parent._gridSize);
-                        triangles.Add(cornerIndex + _parent._gridSize);  
+                        triangles.Add(cornerIndex + 1 + gridSize);
+                        triangles.Add(cornerIndex + gridSize);  
                     }
                 }
             }
@@ -99,15 +136,15 @@ namespace TerrainGen
         }
         
 
-        private List<Vector2> CreateUvs()
+        private List<Vector2> CreateUvs(int gridSize)
         {
             List<Vector2> uvs = new List<Vector2>();
             
-            for (int i = 0; i < _parent._gridSize; i++)
+            for (int i = 0; i < gridSize; i++)
             {
-                for (int j = 0; j < _parent._gridSize; j++)
+                for (int j = 0; j < gridSize; j++)
                 {
-                    float step = _parent._meshSize / (_parent._gridSize - 1);
+                    float step = _parent._meshSize / (gridSize - 1);
                     
                     Vector2 uv = new Vector2(i / step, j / step);
                     uvs.Add(uv);
@@ -117,13 +154,13 @@ namespace TerrainGen
             return uvs;
         }
 
-        private float GetHeight(int x, int y)
+        private float GetHeight(int x, int y, int gridSize)
         {
             float height = 0f;
             float currentFrequency = _parent._frequency;
             float amplitude = 1.0f;
             
-            float step = _parent._meshSize / (_parent._gridSize - 1);
+            float step = _parent._meshSize / (gridSize - 1);
             Vector3 worldPosition = new Vector3(x * step + transform.position.x, 0, y * step + transform.position.z);
 
             for (int i = 0; i < _parent._octaveCount; i++)
@@ -138,26 +175,26 @@ namespace TerrainGen
                 height = (float)heightInt / _parent._terrace;
             }
             
-            if (_parent._islandify)
-                height *= Islandification(x, y);
-            
             return height * _parent._heightMultiplier;
         }
-        
-        private float Islandification(int x, int y)
+
+        public void UpdateLOD(float distance)
         {
-            Vector2 centerPoint;
-            centerPoint.x = _parent._meshSize / 2;
-            centerPoint.y = _parent._meshSize / 2;
+            Mesh newMesh = null;
 
-            float step = _parent._meshSize / (_parent._gridSize - 1);
+            if (distance < 50)
+                newMesh = _lodMeshes[0];
+            else if (distance < 100)
+                newMesh = _lodMeshes[1];
+            else
+                newMesh = _lodMeshes[2];
 
-            Vector2 point = new Vector3(x * step , y * step);
-
-            float distance = Vector2.Distance(centerPoint, point);
-            float normalizedDistance = Mathf.Clamp01(distance / (_parent._meshSize / 2));
-
-            return 1 - normalizedDistance;
+            if (_currentMesh != newMesh)
+            {
+                _meshFilter.mesh = newMesh;
+                _meshCollider.sharedMesh = newMesh;
+                _currentMesh = newMesh;
+            }
         }
     }
 }
