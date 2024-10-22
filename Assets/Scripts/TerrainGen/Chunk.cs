@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Serialization;
+using System.Linq;
+
 
 namespace TerrainGen
 {
@@ -23,7 +24,8 @@ namespace TerrainGen
             _parent = parent;
             _meshFilter = GetComponent<MeshFilter>();
             _meshCollider = GetComponent<MeshCollider>();
-            int gridSize = _parent._gridSize;
+
+            int gridSize = parent._gridSize;
 
             for (int i = 0; i < _lodMeshes.Length; i++)
             {
@@ -35,21 +37,26 @@ namespace TerrainGen
                 _vertices = CreateVertices(heightmap, gridSize);
                 _triangles = CreateTriangles(heightmap, gridSize);
                 _uvs = CreateUvs(gridSize);
-            
+                
+                List<Vector3> edgeVertices = GetEdgeVertices();
+
+                for (int j = 0; j < _vertices.Count; j++)
+                {
+                    if (edgeVertices.Contains(_vertices[j]))
+                    {
+                        Vector3 vertex = _vertices[j];
+                        vertex += Vector3.down * 2f;
+                        
+                        _vertices[j] = vertex;
+                    }
+                }
+
                 mesh.SetVertices(_vertices);
                 mesh.SetTriangles(_triangles, 0);
                 mesh.SetUVs(0, _uvs);
-                mesh.RecalculateBounds();
-                mesh.RecalculateNormals();
-            
+                mesh.RecalculateNormals();         
                 _lodMeshes[i] = mesh;
                 gridSize /= 2;
-            }
-            
-            //stitch edge to prevent gaps
-            foreach (Chunk neighbor in Neighbors.Values)
-            {
-                StitchEdges(neighbor, _parent._gridSize);
             }
             
             _meshFilter.mesh = _lodMeshes[0];
@@ -65,7 +72,7 @@ namespace TerrainGen
             {
                 for (int j = 0; j < gridSize; j++)
                 {
-                    float step = _parent._meshSize / (gridSize - 1);
+                    float step = _parent._meshSize / (gridSize -1);
                     
                     heightmap[i, j] = new Vector3(i * step, GetHeight(i, j, gridSize), j * step);
                     vertices.Add(heightmap[i, j]);
@@ -79,36 +86,19 @@ namespace TerrainGen
         {
             List<int> triangles = new List<int>();
 
-            for (int i = 0; i < heightmap.GetLength(0) - 1; i++)
+            for (int i = 0; i < gridSize - 1; i++)
             {
-                for (int j = 0; j < heightmap.GetLength(1) - 1; j++)
+                for (int j = 0; j < gridSize - 1; j++)
                 {
                     int cornerIndex = i + j * gridSize;
                     
-                    Vector3 v1 = heightmap[i, j];
-                    Vector3 v2 = heightmap[i + 1, j];
-                    Vector3 v3 = heightmap[i + 1, j + 1];
-
-                    if (v1.y > v2.y || v1.y > v3.y || v2.y > v3.y || v2.y > v1.y || v3.y > v1.y || v3.y > v2.y)
-                    {
-                        triangles.Add(cornerIndex);
-                        triangles.Add(cornerIndex + 1);
-                        triangles.Add(cornerIndex + gridSize);
-
-                        triangles.Add(cornerIndex + 1);
-                        triangles.Add(cornerIndex + 1 +gridSize);
-                        triangles.Add(cornerIndex + gridSize);
-                    }
-                    else
-                    {
-                        triangles.Add(cornerIndex);
-                        triangles.Add(cornerIndex + 1);
-                        triangles.Add(cornerIndex + 1 + gridSize);
+                    triangles.Add(cornerIndex);
+                    triangles.Add(cornerIndex + 1);
+                    triangles.Add(cornerIndex + 1 + gridSize);
                     
-                        triangles.Add(cornerIndex);
-                        triangles.Add(cornerIndex + 1 + gridSize);
-                        triangles.Add(cornerIndex + gridSize);  
-                    }
+                    triangles.Add(cornerIndex);
+                    triangles.Add(cornerIndex + 1 + gridSize);
+                    triangles.Add(cornerIndex + gridSize);  
                 }
             }
 
@@ -162,12 +152,18 @@ namespace TerrainGen
         {
             Mesh newMesh = null;
 
-            if (distance < 50)
+            if (distance < _parent._minLODDIstance)
+            {
                 newMesh = _lodMeshes[0];
-            else if (distance < 100)
+            }
+            else if (distance < _parent._minLODDIstance * 2f)
+            {
                 newMesh = _lodMeshes[1];
+            }
             else
+            {
                 newMesh = _lodMeshes[2];
+            }
 
             if (CurrentMesh != newMesh)
             {
@@ -176,52 +172,44 @@ namespace TerrainGen
                 CurrentMesh = newMesh;
             }
         }
-
-        public Mesh[] GetLODMeshes()
+        
+        public List<Vector3> GetEdgeVertices()
         {
-            return _lodMeshes;
-        }
+            List<Vector3> edgeVertices = new List<Vector3>();
+            int gridSize = _parent._gridSize;
 
-        private List<int> GetEdgeVertices(int gridSize)
-        {
-            List<int> edgeVertices = new List<int>();
-            
-            for (int i = 0; i < gridSize; i++)
+            foreach (Vector3 vertex in _vertices)
             {
-                edgeVertices.Add(i);
-            }
-            
-            for (int i = gridSize * (gridSize - 1); i < gridSize * gridSize; i++)
-            {
-                edgeVertices.Add(i);
-            }
-
-            for (int i = 0; i < gridSize * gridSize; i += gridSize)
-            {
-                edgeVertices.Add(i);
-            }
-
-            for (int i = gridSize - 1; i < gridSize * gridSize; i += gridSize)
-            {
-                edgeVertices.Add(i);
+                if (IsEdgeVertex(vertex, gridSize))
+                {
+                    edgeVertices.Add(vertex);
+                }
             }
 
             return edgeVertices;
         }
 
-        private void StitchEdges(Chunk neighbor, int gridSize)
+        private bool IsEdgeVertex(Vector3 vertex, int gridSize)
         {
-            List<int > edgeVertices = GetEdgeVertices(gridSize);
-            List<int> neighborEdgeVertices = neighbor.GetEdgeVertices(gridSize);
-            
-            for (int i = 0; i < edgeVertices.Count; i++)
-            {
-               Vector3 vertex = _vertices[edgeVertices[i]];
-                Vector3 neighborVertex = neighbor._vertices[neighborEdgeVertices[i]];
+            float step = _parent._meshSize / (gridSize - 1);
+            int x = Mathf.RoundToInt(vertex.x / step);
+            int z = Mathf.RoundToInt(vertex.z / step);
 
-                vertex.y = neighborVertex.y;
-                _vertices[edgeVertices[i]] = vertex;
-            }
+            return x == 0 || x == gridSize - 1 || z == 0 || z == gridSize - 1;
+        }
+
+        private void AverageNormalsWithNeighbor(Mesh mesh, int lodIndex)
+        {
+            Vector3[] normals = mesh.normals;
+            Vector3[] vertices = mesh.vertices;
+            List<Vector3> edgeVertices = GetEdgeVertices();
+
+            mesh.normals = normals;
+        }
+
+        public Mesh[] GetLODMeshes()
+        {
+            return _lodMeshes;
         }
     }
 }

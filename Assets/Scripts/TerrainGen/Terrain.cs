@@ -32,6 +32,7 @@ namespace TerrainGen
         public GameObject _chunkPrefab = default;
         public Transform _camera = default;
         public float _viewDistance = default;
+        public float _minLODDIstance = default;
 
         private int _chunkVisibleInViewDst;
         private Vector2Int _currentChunkCoord;
