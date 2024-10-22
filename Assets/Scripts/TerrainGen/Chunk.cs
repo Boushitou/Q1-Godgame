@@ -10,6 +10,7 @@ namespace TerrainGen
         private List<Vector3> _vertices = new List<Vector3>();
         private List<int> _triangles = new List<int>();
         private List<Vector2> _uvs = new List<Vector2>();
+        private List<Vector3> _normals = new List<Vector3>();
         
         public Mesh CurrentMesh { get; private set; }
         public Dictionary<Vector2Int, Chunk> Neighbors = new Dictionary<Vector2Int, Chunk>();
@@ -38,23 +39,26 @@ namespace TerrainGen
                 _triangles = CreateTriangles(heightmap, gridSize);
                 _uvs = CreateUvs(gridSize);
                 
-                List<Vector3> edgeVertices = GetEdgeVertices();
-
-                for (int j = 0; j < _vertices.Count; j++)
-                {
-                    if (edgeVertices.Contains(_vertices[j]))
-                    {
-                        Vector3 vertex = _vertices[j];
-                        vertex += Vector3.down * 2f;
-                        
-                        _vertices[j] = vertex;
-                    }
-                }
+                // List<Vector3> edgeVertices = GetEdgeVertices(gridSize);
+                //
+                // for (int j = 0; j < _vertices.Count; j++)
+                // {
+                //     if (edgeVertices.Contains(_vertices[j]))
+                //     {
+                //         Vector3 vertex = _vertices[j];
+                //         vertex += Vector3.down * 10f;
+                //         
+                //         _vertices[j] = vertex;
+                //     }
+                // }
 
                 mesh.SetVertices(_vertices);
                 mesh.SetTriangles(_triangles, 0);
                 mesh.SetUVs(0, _uvs);
-                mesh.RecalculateNormals();         
+                mesh.RecalculateNormals();  
+                //_normals = mesh.normals.ToList();
+                //AverageNormalsWithNeighbor(mesh, i);
+                
                 _lodMeshes[i] = mesh;
                 gridSize /= 2;
             }
@@ -173,11 +177,10 @@ namespace TerrainGen
             }
         }
         
-        public List<Vector3> GetEdgeVertices()
+        public List<Vector3> GetEdgeVertices(int gridSize)
         {
             List<Vector3> edgeVertices = new List<Vector3>();
-            int gridSize = _parent._gridSize;
-
+            
             foreach (Vector3 vertex in _vertices)
             {
                 if (IsEdgeVertex(vertex, gridSize))
@@ -187,6 +190,21 @@ namespace TerrainGen
             }
 
             return edgeVertices;
+        }
+        
+        public List<Vector3> GetEdgeNormals(int gridSize)
+        {
+            List<Vector3> edgeNormals = new List<Vector3>();
+            
+            foreach (Vector3 normal in _normals)
+            {
+                if (IsEdgeVertex(normal, gridSize))
+                {
+                    edgeNormals.Add(normal);
+                }
+            }
+
+            return edgeNormals;
         }
 
         private bool IsEdgeVertex(Vector3 vertex, int gridSize)
@@ -201,8 +219,22 @@ namespace TerrainGen
         private void AverageNormalsWithNeighbor(Mesh mesh, int lodIndex)
         {
             Vector3[] normals = mesh.normals;
-            Vector3[] vertices = mesh.vertices;
-            List<Vector3> edgeVertices = GetEdgeVertices();
+            List<Vector3> edgeNormals = GetEdgeNormals(normals.Length);
+
+            foreach (Chunk neighbor in Neighbors.Values)
+            {
+                Mesh neighborMesh = neighbor.GetLODMeshes()[lodIndex];
+                Vector3[] neighborNormals = neighborMesh.normals;
+                List<Vector3> neighborEdgeNormals = neighbor.GetEdgeNormals(neighborNormals.Length);
+                
+                for (int i = 0; i < edgeNormals.Count; i++)
+                {
+                    if (edgeNormals.Contains(normals[i]) && neighborEdgeNormals.Contains(neighborNormals[i]))
+                    {
+                        normals[i] = (normals[i] + neighborNormals[i]) / 2f;
+                    }
+                }
+            }
 
             mesh.normals = normals;
         }

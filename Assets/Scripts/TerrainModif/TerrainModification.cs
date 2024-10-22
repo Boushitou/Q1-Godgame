@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using TerrainGen;
 
@@ -31,6 +32,8 @@ namespace TerrainModif
             
             Mesh[] meshes = chunk.GetLODMeshes();
             
+            float targetHeight = GetTargetHeight(GetVerticesInRange(meshes[0].vertices, meshCollider, hit.point), direction);
+            
             foreach (Chunk neighbor in chunk.Neighbors.Values)
             {
                 MeshCollider neighborMeshCollider = neighbor.GetComponent<MeshCollider>();
@@ -39,7 +42,8 @@ namespace TerrainModif
                 foreach (Mesh neighborMesh in neighborMeshes)
                 {
                     Vector3[] neighborVertices = neighborMesh.vertices;
-                    ModifyVertices(neighborVertices, neighborMeshCollider, hit.point, direction);
+                    List<Vector3> neighborVerticesInRange = GetVerticesInRange(neighborVertices, neighborMeshCollider, hit.point);
+                    ModifyVertices(neighborVerticesInRange.ToArray(), neighborMeshCollider, hit.point, direction, targetHeight);
                     neighborMesh.SetVertices(neighborVertices);
                     neighborMesh.RecalculateNormals();
                     neighborMesh.RecalculateBounds();
@@ -50,7 +54,8 @@ namespace TerrainModif
             foreach (Mesh mesh in meshes)
             {
                 Vector3[] vertices = mesh.vertices;
-                ModifyVertices(vertices, meshCollider, hit.point, direction);
+                List<Vector3> verticesInRange = GetVerticesInRange(vertices, meshCollider, hit.point);
+                ModifyVertices(vertices, meshCollider, hit.point, direction, targetHeight);
                 mesh.SetVertices(vertices);
                 mesh.RecalculateNormals();
                 mesh.RecalculateBounds();
@@ -60,7 +65,7 @@ namespace TerrainModif
 
         private Vector3 GetHighestVertices(Vector3[] vertices)
         {
-            float highestPoint = 0f;
+            float highestPoint = float.MinValue;
             Vector3 highestVertex = Vector3.zero;
             
             for (int i = 0; i < vertices.Length; i++)
@@ -74,9 +79,57 @@ namespace TerrainModif
 
             return highestVertex;
         }
-
-        private void ModifyVertices(Vector3[] vertices, MeshCollider meshCollider, Vector3 hitPoint, Vector3 direction)
+        
+        private Vector3 GetLowestVertices(Vector3[] vertices)
         {
+            float lowestPoint = float.MaxValue;
+            Vector3 lowestVertex = Vector3.zero;
+            
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                if (vertices[i].y < lowestPoint)
+                {
+                    lowestPoint = vertices[i].y;
+                    lowestVertex = vertices[i];
+                }
+            }
+
+            return lowestVertex;
+        }
+
+        private void ModifyVertices(Vector3[] vertices, MeshCollider meshCollider, Vector3 hitPoint, Vector3 direction, float targetHeight)
+        {
+            List<Vector3> verticesInRange = GetVerticesInRange(vertices, meshCollider, hitPoint);
+            
+            if (TerrainIsFlat(verticesInRange))
+            {
+                for (int i = 0; i < vertices.Length; i++)
+                {
+                    if (verticesInRange.Contains(vertices[i]))
+                    {
+                        vertices[i] += direction;
+                    }
+                }
+            }
+
+            else
+            {
+                for (int i = 0; i < vertices.Length; i++)
+                {
+                    if (verticesInRange.Contains(vertices[i]))
+                    {
+                        Vector3 vertex = vertices[i];
+                        vertex.y = targetHeight;
+                        vertices[i] = vertex;
+                    }
+                }
+            }
+        }
+
+        private List<Vector3> GetVerticesInRange(Vector3[] vertices, MeshCollider meshCollider, Vector3 hitPoint)
+        {
+            List<Vector3> verticesInRange = new List<Vector3>();
+            
             for (int i = 0; i < vertices.Length; i++)
             {
                 Vector3 worldVertexPos = meshCollider.transform.TransformPoint(vertices[i]);
@@ -84,9 +137,30 @@ namespace TerrainModif
 
                 if (distance < _range)
                 {
-                    vertices[i] += direction;
+                    verticesInRange.Add(vertices[i]);
                 }
             }
+
+            return verticesInRange;
+        }
+
+        private float GetTargetHeight(List<Vector3> vertices, Vector3 direction)
+        {
+            float targetHeight = direction == Vector3.up ? GetHighestVertices(vertices.ToArray()).y : GetLowestVertices(vertices.ToArray()).y;
+
+            return targetHeight;
+        }
+
+        private bool TerrainIsFlat(List<Vector3> vertices)
+        {
+            int flatCount = 0;
+            for (int i = 0; i < vertices.Count - 1; i++)
+            {
+                if (vertices[i].y == vertices[i + 1].y)
+                    flatCount++;
+            }
+            
+            return flatCount == vertices.Count - 1;
         }
 
         public void ElevateTerrain()

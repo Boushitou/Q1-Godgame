@@ -468,7 +468,7 @@ MonoBehaviour:
     type: 3}
   _camera: {fileID: 1504328188}
   _viewDistance: 150
-  _minLODDIstance: 50
+  _minLODDIstance: 189.1
 --- !u!4 &1296431680
 Transform:
   m_ObjectHideFlags: 0
