@@ -9,6 +9,8 @@ namespace TerrainModif
         private Transform _cam;
         private float _range = 4f;
 
+        private float _targetHeight = 0f;
+        
         private void Start()
         {
             _cam = transform.GetChild(0);
@@ -32,34 +34,32 @@ namespace TerrainModif
             
             Mesh[] meshes = chunk.GetLODMeshes();
             
-            float targetHeight = GetTargetHeight(GetVerticesInRange(meshes[0].vertices, meshCollider, hit.point), direction);
+            _targetHeight = GetTargetHeight(GetVerticesInRangeInMesh(meshes[0].vertices, meshCollider, hit.point), direction);
             
-            foreach (Chunk neighbor in chunk.Neighbors.Values)
+            for (int lodIndex = 0; lodIndex < meshes.Length; lodIndex++)
             {
-                MeshCollider neighborMeshCollider = neighbor.GetComponent<MeshCollider>();
-                    
-                Mesh[] neighborMeshes = neighbor.GetLODMeshes();
-                foreach (Mesh neighborMesh in neighborMeshes)
+                Mesh mesh = meshes[lodIndex];
+                Vector3[] vertices = mesh.vertices;
+                ModifyVertices(vertices, meshCollider, hit.point, direction, true);
+
+                foreach (Chunk neighbor in chunk.Neighbors.Values)
                 {
+                    Mesh neighborMesh = neighbor.GetLODMeshes()[lodIndex];
                     Vector3[] neighborVertices = neighborMesh.vertices;
-                    List<Vector3> neighborVerticesInRange = GetVerticesInRange(neighborVertices, neighborMeshCollider, hit.point);
-                    ModifyVertices(neighborVerticesInRange.ToArray(), neighborMeshCollider, hit.point, direction, targetHeight);
+                    MeshCollider neighborMeshCollider = neighbor.GetComponent<MeshCollider>();
+                    ModifyVertices(neighborVertices, neighborMeshCollider, hit.point, direction, false);
+                    
                     neighborMesh.SetVertices(neighborVertices);
                     neighborMesh.RecalculateNormals();
                     neighborMesh.RecalculateBounds();
+                    
+                    neighborMeshCollider.sharedMesh = neighbor.CurrentMesh;
                 }
-                neighborMeshCollider.sharedMesh = neighbor.CurrentMesh;
-            }
-
-            foreach (Mesh mesh in meshes)
-            {
-                Vector3[] vertices = mesh.vertices;
-                List<Vector3> verticesInRange = GetVerticesInRange(vertices, meshCollider, hit.point);
-                ModifyVertices(vertices, meshCollider, hit.point, direction, targetHeight);
                 mesh.SetVertices(vertices);
                 mesh.RecalculateNormals();
                 mesh.RecalculateBounds();
             }
+            
             meshCollider.sharedMesh = chunk.CurrentMesh;
         }
 
@@ -97,21 +97,21 @@ namespace TerrainModif
             return lowestVertex;
         }
 
-        private void ModifyVertices(Vector3[] vertices, MeshCollider meshCollider, Vector3 hitPoint, Vector3 direction, float targetHeight)
+        private void ModifyVertices(Vector3[] vertices, MeshCollider meshCollider, Vector3 hitPoint, Vector3 direction, bool isMainMesh)
         {
-            List<Vector3> verticesInRange = GetVerticesInRange(vertices, meshCollider, hitPoint);
+            List<Vector3> verticesInRange = GetVerticesInRangeInMesh(vertices, meshCollider, hitPoint);
             
-            if (TerrainIsFlat(verticesInRange))
-            {
-                for (int i = 0; i < vertices.Length; i++)
-                {
-                    if (verticesInRange.Contains(vertices[i]))
-                    {
-                        vertices[i] += direction;
-                    }
-                }
-            }
-
+             if (isMainMesh && TerrainIsFlat(verticesInRange))
+             {
+                 for (int i = 0; i < vertices.Length; i++)
+                 {
+                     if (verticesInRange.Contains(vertices[i]))
+                     {
+                         vertices[i] += direction;
+                         _targetHeight = vertices[i].y;
+                     }
+                 }
+             }
             else
             {
                 for (int i = 0; i < vertices.Length; i++)
@@ -119,14 +119,14 @@ namespace TerrainModif
                     if (verticesInRange.Contains(vertices[i]))
                     {
                         Vector3 vertex = vertices[i];
-                        vertex.y = targetHeight;
+                        vertex.y = _targetHeight;
                         vertices[i] = vertex;
                     }
                 }
             }
         }
 
-        private List<Vector3> GetVerticesInRange(Vector3[] vertices, MeshCollider meshCollider, Vector3 hitPoint)
+        private List<Vector3> GetVerticesInRangeInMesh(Vector3[] vertices, MeshCollider meshCollider, Vector3 hitPoint)
         {
             List<Vector3> verticesInRange = new List<Vector3>();
             
