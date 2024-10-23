@@ -151,7 +151,7 @@ namespace TerrainModif
 
         private float GetTargetHeight(List<Vector3> vertices, Vector3 direction)
         {
-            float targetHeight = direction == Vector3.up ? GetHighestVertices(vertices.ToArray()).y : GetLowestVertices(vertices.ToArray()).y;
+            float targetHeight = direction.y > 0 ? GetHighestVertices(vertices.ToArray()).y : GetLowestVertices(vertices.ToArray()).y;
 
             return targetHeight;
         }
@@ -161,21 +161,16 @@ namespace TerrainModif
             int flatCount = 0;
             for (int i = 0; i < vertices.Count - 1; i++)
             {
-                if (vertices[i].y == vertices[i + 1].y)
+                if (Mathf.Approximately(vertices[i].y, vertices[i + 1].y) /*vertices[i].y == vertices[i + 1].y*/)
                     flatCount++;
             }
             
             return flatCount == vertices.Count - 1;
         }
 
-        public void ElevateTerrain()
+        public void ElevateTerrain(float amount)
         {
-            ModifyTerrain(Vector3.up);
-        }
-
-        public void LowerTerrain()
-        {
-            ModifyTerrain(Vector3.down);
+            ModifyTerrain(new Vector3(0f, amount, 0f));
         }
     }
 }

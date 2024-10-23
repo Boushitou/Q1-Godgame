@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4da43730b2cb7e4daea53ddd7c310a1, type: 3}
+  m_Name: ElevateTerrain
+  m_EditorClassIdentifier: 
+  FaithCost: 1
+  TotalCoolDown: 0.5
+  ElevationAmount: 1.2

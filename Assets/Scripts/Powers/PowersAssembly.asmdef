@@ -1,0 +1,6 @@
+{
+	"name": "PowersAssembly",
+	"references": [
+		"TerrainModifAssembly"
+	]
+}

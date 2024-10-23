@@ -1,12 +1,17 @@
 using UnityEngine;
 using TerrainModif;
+using Powers;
 
 namespace Player
 {
   public class PlayerController : MonoBehaviour
   {
+      [SerializeField] private Power[] _powers = default;
+      [SerializeField] private Power _currentPower = default;
+      
       private CameraMovement _cameraMovement;
       private TerrainModification _terrainModification;
+
       // Start is called before the first frame update
       void Start()
       {
@@ -59,12 +64,13 @@ namespace Player
       {
           if (Input.GetMouseButtonDown(0))
           {
-                _terrainModification.ElevateTerrain();
+               _currentPower.Invoke(_terrainModification);
           }
-          else if (Input.GetMouseButtonDown(1))
-          {
-              _terrainModification.LowerTerrain();
-          }
+      }
+
+      public void SetPower(Power power)
+      {
+          _currentPower = power;
       }
   }  
 }

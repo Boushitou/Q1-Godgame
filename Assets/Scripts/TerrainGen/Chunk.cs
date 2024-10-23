@@ -38,19 +38,6 @@ namespace TerrainGen
                 _vertices = CreateVertices(heightmap, gridSize);
                 _triangles = CreateTriangles(heightmap, gridSize);
                 _uvs = CreateUvs(gridSize);
-                
-                // List<Vector3> edgeVertices = GetEdgeVertices(gridSize);
-                //
-                // for (int j = 0; j < _vertices.Count; j++)
-                // {
-                //     if (edgeVertices.Contains(_vertices[j]))
-                //     {
-                //         Vector3 vertex = _vertices[j];
-                //         vertex += Vector3.down * 10f;
-                //         
-                //         _vertices[j] = vertex;
-                //     }
-                // }
 
                 mesh.SetVertices(_vertices);
                 mesh.SetTriangles(_triangles, 0);
