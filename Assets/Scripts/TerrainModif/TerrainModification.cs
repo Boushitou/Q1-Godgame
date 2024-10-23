@@ -6,6 +6,9 @@ namespace TerrainModif
 {
     public class TerrainModification : MonoBehaviour
     {
+        [Header("Terrain Options")]
+        [SerializeField] private float _maxHeight = default;
+        [SerializeField] private float _minHeight = default;
         private Transform _cam;
         private float _range = 4f;
 
@@ -76,7 +79,7 @@ namespace TerrainModif
                     highestVertex = vertices[i];
                 }
             }
-
+            Debug.Log(highestVertex);
             return highestVertex;
         }
         
@@ -107,6 +110,8 @@ namespace TerrainModif
                  {
                      if (verticesInRange.Contains(vertices[i]))
                      {
+                         if (vertices[i].y + direction.y > _maxHeight || vertices[i].y + direction.y < _minHeight)
+                             return;
                          vertices[i] += direction;
                          _targetHeight = vertices[i].y;
                      }
