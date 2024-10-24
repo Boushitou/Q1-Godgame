@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using System.Linq;
 
 
 namespace TerrainGen
@@ -22,9 +21,9 @@ namespace TerrainGen
 
         public void GenerateMeshes(TerrainData terrainData)
         {
-            _terrainData = terrainData;
             _meshFilter = GetComponent<MeshFilter>();
             _meshCollider = GetComponent<MeshCollider>();
+            _terrainData = terrainData;
 
             int gridSize = _terrainData.GridSize;
 

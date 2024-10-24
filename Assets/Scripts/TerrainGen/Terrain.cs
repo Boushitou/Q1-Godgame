@@ -11,18 +11,21 @@ namespace TerrainGen
         public TerrainData terrainData;
         
         [Header("Chunk Generation")]
-        public GameObject _chunkPrefab = default;
-        public Transform _camera = default;
-        public float _viewDistance = default;
+        public GameObject ChunkPrefab = default;
+        public Transform Camera = default;
+        public float ViewDistance = default;
+        public int MaxChunksDistance = default;
 
         private int _chunkVisibleInViewDst;
         private Vector2Int _currentChunkCoord;
         private Dictionary<Vector2Int, GameObject> _chunks = new Dictionary<Vector2Int, GameObject>();
         private List<Vector2Int> _currentlyVisibleChunks = new List<Vector2Int>();
+        private float maxChunkCoord = 0f;
 
         private void Start()
         {
-            _chunkVisibleInViewDst = Mathf.RoundToInt(_viewDistance / terrainData.MeshSize);
+            _chunkVisibleInViewDst = Mathf.RoundToInt(ViewDistance / terrainData.MeshSize);
+            maxChunkCoord = Mathf.RoundToInt(MaxChunksDistance / terrainData.MeshSize);
             UpdateVisibleChunks();
         }
 
@@ -36,14 +39,18 @@ namespace TerrainGen
         {
             HashSet<Vector2Int> newVisibleChunks = new HashSet<Vector2Int>();
             
-            _currentChunkCoord.x = Mathf.RoundToInt(_camera.position.x / terrainData.MeshSize);
-            _currentChunkCoord.y = Mathf.RoundToInt(_camera.position.z / terrainData.MeshSize);
+            _currentChunkCoord.x = Mathf.RoundToInt(Camera.position.x / terrainData.MeshSize);
+            _currentChunkCoord.y = Mathf.RoundToInt(Camera.position.z / terrainData.MeshSize);
 
             for (int y = -_chunkVisibleInViewDst; y <= _chunkVisibleInViewDst; y++)
             {
                 for (int x = -_chunkVisibleInViewDst; x <= _chunkVisibleInViewDst; x++)
                 {
                     Vector2Int viewedChunkCord = new Vector2Int(_currentChunkCoord.x + x, _currentChunkCoord.y + y);
+                    
+                    if (viewedChunkCord.x > maxChunkCoord || viewedChunkCord.y > maxChunkCoord || viewedChunkCord.x < -maxChunkCoord || viewedChunkCord.y < -maxChunkCoord)
+                        continue;
+                    
                     newVisibleChunks.Add(viewedChunkCord);
 
                     if (_chunks.ContainsKey(viewedChunkCord))
@@ -52,7 +59,7 @@ namespace TerrainGen
                     }
                     else
                     {
-                        GameObject chunk = Instantiate(_chunkPrefab, new Vector3(viewedChunkCord.x * terrainData.MeshSize, 0, viewedChunkCord.y * terrainData.MeshSize), Quaternion.identity);
+                        GameObject chunk = Instantiate(ChunkPrefab, new Vector3(viewedChunkCord.x * terrainData.MeshSize, 0, viewedChunkCord.y * terrainData.MeshSize), Quaternion.identity);
                         chunk.transform.SetParent(transform);
                         
                         if (chunk.TryGetComponent(out Chunk terrainGeneration))
@@ -86,14 +93,14 @@ namespace TerrainGen
             
             Vector2Int[] neighborsOffsets = new Vector2Int[]
             {
-                new Vector2Int(0, 1),
-                new Vector2Int(1, 0),
-                new Vector2Int(0, -1),
-                new Vector2Int(-1, 0),
-                new Vector2Int(1, 1),
-                new Vector2Int(1, -1),
-                new Vector2Int(-1, 1),
-                new Vector2Int(-1, -1),
+                new (0, 1),
+                new (1, 0),
+                new (0, -1),
+                new (-1, 0),
+                new (1, 1),
+                new (1, -1),
+                new (-1, 1),
+                new (-1, -1),
             }; //Every neighbors coordinate
 
             foreach (Vector2Int offset in neighborsOffsets)
@@ -115,7 +122,7 @@ namespace TerrainGen
             {
                 if (chunk.TryGetComponent(out Chunk chunkComponent))
                 {
-                    float distance = Vector3.Distance(_camera.transform.position, chunk.transform.position);
+                    float distance = Vector3.Distance(Camera.transform.position, chunk.transform.position);
                     chunkComponent.UpdateLOD(distance);
                 }
             }

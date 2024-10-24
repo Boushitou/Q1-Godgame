@@ -13,5 +13,4 @@ namespace Powers
             terrainModification.ElevateTerrain(ElevationAmount);
         }
     }
-  
 }
