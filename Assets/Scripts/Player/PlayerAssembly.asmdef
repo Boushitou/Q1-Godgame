@@ -1,0 +1,7 @@
+{
+	"name": "PlayerAssembly",
+	"references": [
+		"TerrainModifAssembly",
+		"PowersAssembly"
+	]
+}
