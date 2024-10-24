@@ -151,5 +151,7 @@ namespace TerrainGen
         public int Terrace;
         [Header("Chunk Generation")]
         public float MinLODDIstance;
+
+        public GameObject TreePrefab;
     }
 }

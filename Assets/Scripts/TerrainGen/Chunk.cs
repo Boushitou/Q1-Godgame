@@ -52,7 +52,8 @@ namespace TerrainGen
             _meshFilter.mesh = _lodMeshes[0];
             CurrentMesh = _lodMeshes[0];
             _meshCollider.sharedMesh = _lodMeshes[0];
-            
+
+            GenerateTrees();
             gameObject.layer = LayerMask.NameToLayer("Ground");
         }
 
@@ -225,6 +226,27 @@ namespace TerrainGen
             }
 
             mesh.normals = normals;
+        }
+
+        private void GenerateTrees()
+        {
+            List<Vector3> treePositions = new List<Vector3>();
+            Vector2 sampleRegion = new Vector2(_terrainData.MeshSize, _terrainData.MeshSize);
+
+            List<Vector2> points = PoissonDiscSampling.GeneratePoints(1f, sampleRegion);
+
+            foreach (Vector2 point in points)
+            {
+                float height = GetHeight((int)point.x, (int)point.y, _terrainData.GridSize);
+                Vector3 worldPos = new Vector3(point.x + transform.position.x, height, point.y + transform.position.z);
+                treePositions.Add(worldPos);
+            }
+
+            foreach (Vector3 position in treePositions)
+            {
+                GameObject tree = Instantiate(_terrainData.TreePrefab, position, Quaternion.identity, transform);
+                tree.transform.SetParent(gameObject.transform);
+            }
         }
 
         public Mesh[] GetLODMeshes()

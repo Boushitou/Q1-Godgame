@@ -872,6 +872,7 @@ MonoBehaviour:
     type: 3}
   _camera: {fileID: 1504328188}
   _viewDistance: 150
+  _maxChunksDistance: 450
 --- !u!4 &1296431680
 Transform:
   m_ObjectHideFlags: 0
@@ -1046,6 +1047,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _speed: 20
   _sensitivity: 2
+  _terrain: {fileID: 1296431679}
+  _clipRadius: 3
 --- !u!114 &1504328191
 MonoBehaviour:
   m_ObjectHideFlags: 0

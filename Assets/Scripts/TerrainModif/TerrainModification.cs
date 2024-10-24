@@ -79,7 +79,6 @@ namespace TerrainModif
                     highestVertex = vertices[i];
                 }
             }
-            Debug.Log(highestVertex);
             return highestVertex;
         }
         
