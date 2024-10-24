@@ -2,6 +2,7 @@
 	"name": "PlayerAssembly",
 	"references": [
 		"TerrainModifAssembly",
-		"PowersAssembly"
+		"PowersAssembly",
+		"TerrainAssembly"
 	]
 }

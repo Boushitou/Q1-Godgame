@@ -5,16 +5,17 @@ using UnityEngine.Serialization;
 
 namespace TerrainGen
 {
-    public class Terrain : MonoBehaviour
+    public class TerrainGeneration : MonoBehaviour
     {
         [Header("Mesh Generation")] 
         public TerrainData terrainData;
         
+        [FormerlySerializedAs("ChunkPrefab")]
         [Header("Chunk Generation")]
-        public GameObject ChunkPrefab = default;
-        public Transform Camera = default;
-        public float ViewDistance = default;
-        public int MaxChunksDistance = default;
+        [SerializeField] private GameObject _chunkPrefab = default;
+        [SerializeField] private Transform _camera = default;
+        [SerializeField] private float _viewDistance = default;
+        [FormerlySerializedAs("MaxChunksDistance")] [SerializeField] private int _maxChunksDistance = default;
 
         private int _chunkVisibleInViewDst;
         private Vector2Int _currentChunkCoord;
@@ -24,8 +25,8 @@ namespace TerrainGen
 
         private void Start()
         {
-            _chunkVisibleInViewDst = Mathf.RoundToInt(ViewDistance / terrainData.MeshSize);
-            maxChunkCoord = Mathf.RoundToInt(MaxChunksDistance / terrainData.MeshSize);
+            _chunkVisibleInViewDst = Mathf.RoundToInt(_viewDistance / terrainData.MeshSize);
+            maxChunkCoord = Mathf.RoundToInt(_maxChunksDistance / terrainData.MeshSize);
             UpdateVisibleChunks();
         }
 
@@ -39,8 +40,8 @@ namespace TerrainGen
         {
             HashSet<Vector2Int> newVisibleChunks = new HashSet<Vector2Int>();
             
-            _currentChunkCoord.x = Mathf.RoundToInt(Camera.position.x / terrainData.MeshSize);
-            _currentChunkCoord.y = Mathf.RoundToInt(Camera.position.z / terrainData.MeshSize);
+            _currentChunkCoord.x = Mathf.RoundToInt(_camera.position.x / terrainData.MeshSize);
+            _currentChunkCoord.y = Mathf.RoundToInt(_camera.position.z / terrainData.MeshSize);
 
             for (int y = -_chunkVisibleInViewDst; y <= _chunkVisibleInViewDst; y++)
             {
@@ -59,7 +60,7 @@ namespace TerrainGen
                     }
                     else
                     {
-                        GameObject chunk = Instantiate(ChunkPrefab, new Vector3(viewedChunkCord.x * terrainData.MeshSize, 0, viewedChunkCord.y * terrainData.MeshSize), Quaternion.identity);
+                        GameObject chunk = Instantiate(_chunkPrefab, new Vector3(viewedChunkCord.x * terrainData.MeshSize, 0, viewedChunkCord.y * terrainData.MeshSize), Quaternion.identity);
                         chunk.transform.SetParent(transform);
                         
                         if (chunk.TryGetComponent(out Chunk terrainGeneration))
@@ -122,17 +123,21 @@ namespace TerrainGen
             {
                 if (chunk.TryGetComponent(out Chunk chunkComponent))
                 {
-                    float distance = Vector3.Distance(Camera.transform.position, chunk.transform.position);
+                    float distance = Vector3.Distance(_camera.transform.position, chunk.transform.position);
                     chunkComponent.UpdateLOD(distance);
                 }
             }
+        }
+
+        public float GetBounds()
+        {
+            return maxChunkCoord * terrainData.MeshSize;
         }
     }
     
     [Serializable]
     public struct TerrainData
     {
-        [FormerlySerializedAs("_gridSize")]
         [Header("Mesh Options")] 
         [Range(0, 256)] public int GridSize;
         [Range(2, 32)] public float MeshSize;

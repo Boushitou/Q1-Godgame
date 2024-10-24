@@ -1,5 +1,5 @@
-using System;
 using UnityEngine;
+using TerrainGen;
 
 namespace Player
 {
@@ -7,6 +7,8 @@ namespace Player
     {
         [SerializeField] private float _speed = default;
         [SerializeField] private float _sensitivity = default;
+        [SerializeField] private TerrainGeneration _terrain = default;
+        [SerializeField] private float _clipRadius = default;
 
         private float _zoomLevel = 0f;
         private float _zoomPosition = 0f;
@@ -29,7 +31,15 @@ namespace Player
             _movementInput.x = x;
             _movementInput.z = z;
 
+            float bounds = _terrain.GetBounds();
+            
+            Vector3 previousPosition = _transform.position;
             _transform.position += _speed * Time.deltaTime * _movementInput;
+            
+            if (_transform.position.x > bounds || _transform.position.x < -bounds || _transform.position.z > bounds || _transform.position.z < -bounds)
+            {
+                _transform.position = previousPosition;
+            }
             
             ClipCheck();
         }
@@ -52,11 +62,11 @@ namespace Player
         {
             Ray ray = new Ray(_transform.position, _cam.forward);
 
-            if (Physics.SphereCast(ray, 3, out RaycastHit hit, 30))
+            if (Physics.SphereCast(ray, _clipRadius, out RaycastHit hit, 30))
             {
-                if (hit.distance < _zoomLevel + 3)
+                if (hit.distance < _zoomLevel + _clipRadius)
                 {
-                    _zoomLevel = hit.distance - 3;
+                    _zoomLevel = hit.distance - _clipRadius;
                 }
             }
         }
