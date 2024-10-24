@@ -1,64 +1,29 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace TerrainGen
 {
-    //[ExecuteAlways]
     public class Terrain : MonoBehaviour
     {
-        //Faire une struct pour store la data
-        [Header("Mesh Options")] 
-        [Range(0, 256)]
-        public int _gridSize = default;
-
-        [Range(2, 32)]
-        public float _meshSize = default;
-
-        [Header("Noise Options")] [Range(0, 1)]
-        public float _frequency = default;
-
-        public float _heightMultiplier = default;
-        [Range(0, 1)] [SerializeField]
-        public float _lacunarity = default;
-        [Range(0, 1)]
-        public float _persistence = default;
-        [Range(1, 20)] 
-        public int _octaveCount = default;
-        public uint _seed = default;
-        public int _terrace = default;
+        [Header("Mesh Generation")] 
+        public TerrainData terrainData;
         
         [Header("Chunk Generation")]
         public GameObject _chunkPrefab = default;
         public Transform _camera = default;
         public float _viewDistance = default;
-        public float _minLODDIstance = default;
 
         private int _chunkVisibleInViewDst;
         private Vector2Int _currentChunkCoord;
         private Dictionary<Vector2Int, GameObject> _chunks = new Dictionary<Vector2Int, GameObject>();
         private List<Vector2Int> _currentlyVisibleChunks = new List<Vector2Int>();
 
-
-        // private void Update()
-        // {
-        //     if (Application.isPlaying)
-        //         return;
-        //     
-        //     foreach (Transform child in transform)
-        //     {
-        //         if (child.TryGetComponent(out TerrainGeneration terrainGeneration))
-        //         {
-        //             terrainGeneration.GenerateMesh(this);
-        //         }
-        //     }
-        // }
-
         private void Start()
         {
-            _chunkVisibleInViewDst = Mathf.RoundToInt(_viewDistance / _meshSize);
+            _chunkVisibleInViewDst = Mathf.RoundToInt(_viewDistance / terrainData.MeshSize);
             UpdateVisibleChunks();
-            //GenerateChunks();
         }
 
         private void Update()
@@ -67,29 +32,12 @@ namespace TerrainGen
             UpdateChunkLOD();
         }
 
-        private void GenerateChunks()
-        {
-            for (int i = 0; i < 10; i++)
-            {
-                for (int j = 0; j < 10; j++)
-                {
-                    GameObject chunk = Instantiate(_chunkPrefab, new Vector3(i * _meshSize, 0, j  * _meshSize), Quaternion.identity);
-                    chunk.transform.parent = transform;
-                    
-                    if (chunk.TryGetComponent(out Chunk terrainGeneration))
-                    {
-                        terrainGeneration.GenerateMeshes(this);
-                    }
-                }
-            }
-        }
-
         private void UpdateVisibleChunks()
         {
             HashSet<Vector2Int> newVisibleChunks = new HashSet<Vector2Int>();
             
-            _currentChunkCoord.x = Mathf.RoundToInt(_camera.position.x / _meshSize);
-            _currentChunkCoord.y = Mathf.RoundToInt(_camera.position.z / _meshSize);
+            _currentChunkCoord.x = Mathf.RoundToInt(_camera.position.x / terrainData.MeshSize);
+            _currentChunkCoord.y = Mathf.RoundToInt(_camera.position.z / terrainData.MeshSize);
 
             for (int y = -_chunkVisibleInViewDst; y <= _chunkVisibleInViewDst; y++)
             {
@@ -104,12 +52,12 @@ namespace TerrainGen
                     }
                     else
                     {
-                        GameObject chunk = Instantiate(_chunkPrefab, new Vector3(viewedChunkCord.x * _meshSize, 0, viewedChunkCord.y * _meshSize), Quaternion.identity);
+                        GameObject chunk = Instantiate(_chunkPrefab, new Vector3(viewedChunkCord.x * terrainData.MeshSize, 0, viewedChunkCord.y * terrainData.MeshSize), Quaternion.identity);
                         chunk.transform.SetParent(transform);
                         
                         if (chunk.TryGetComponent(out Chunk terrainGeneration))
                         {
-                             terrainGeneration.GenerateMeshes(this);
+                             terrainGeneration.GenerateMeshes(terrainData);
                             _chunks.Add(viewedChunkCord,  chunk);
                         }
                     }
@@ -172,5 +120,24 @@ namespace TerrainGen
                 }
             }
         }
+    }
+    
+    [Serializable]
+    public struct TerrainData
+    {
+        [FormerlySerializedAs("_gridSize")]
+        [Header("Mesh Options")] 
+        [Range(0, 256)] public int GridSize;
+        [Range(2, 32)] public float MeshSize;
+        [Header("Noise Options")]
+        [Range(0, 1)] public float Frequency;
+        public float HeightMultiplier;
+        [Range(0, 1)] public float Lacunarity;
+        [Range(0, 1)] public float Persistence;
+        [Range(1, 20)] public int OctaveCount;
+        public uint Seed;
+        public int Terrace;
+        [Header("Chunk Generation")]
+        public float MinLODDIstance;
     }
 }

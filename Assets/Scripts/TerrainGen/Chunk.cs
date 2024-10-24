@@ -17,16 +17,16 @@ namespace TerrainGen
         private Mesh[] _lodMeshes = new Mesh[3];
         
         private MeshFilter _meshFilter;
-        private Terrain _parent;
         private MeshCollider _meshCollider;
+        private TerrainData _terrainData;
 
-        public void GenerateMeshes(Terrain parent)
+        public void GenerateMeshes(TerrainData terrainData)
         {
-            _parent = parent;
+            _terrainData = terrainData;
             _meshFilter = GetComponent<MeshFilter>();
             _meshCollider = GetComponent<MeshCollider>();
 
-            int gridSize = parent._gridSize;
+            int gridSize = _terrainData.GridSize;
 
             for (int i = 0; i < _lodMeshes.Length; i++)
             {
@@ -53,6 +53,8 @@ namespace TerrainGen
             _meshFilter.mesh = _lodMeshes[0];
             CurrentMesh = _lodMeshes[0];
             _meshCollider.sharedMesh = _lodMeshes[0];
+            
+            gameObject.layer = LayerMask.NameToLayer("Ground");
         }
 
         private List<Vector3> CreateVertices(Vector3[,] heightmap, int gridSize)
@@ -63,7 +65,7 @@ namespace TerrainGen
             {
                 for (int j = 0; j < gridSize; j++)
                 {
-                    float step = _parent._meshSize / (gridSize -1);
+                    float step = _terrainData.MeshSize / (gridSize -1);
                     
                     heightmap[i, j] = new Vector3(i * step, GetHeight(i, j, gridSize), j * step);
                     vertices.Add(heightmap[i, j]);
@@ -105,7 +107,7 @@ namespace TerrainGen
             {
                 for (int j = 0; j < gridSize; j++)
                 {
-                    float step = _parent._meshSize / (gridSize - 1);
+                    float step = _terrainData.MeshSize / (gridSize - 1);
                     
                     Vector2 uv = new Vector2(i / step, j / step);
                     uvs.Add(uv);
@@ -118,36 +120,36 @@ namespace TerrainGen
         private float GetHeight(int x, int y, int gridSize)
         {
             float height = 0f;
-            float currentFrequency = _parent._frequency;
+            float currentFrequency = _terrainData.Frequency;
             float amplitude = 1.0f;
             
-            float step = _parent._meshSize / (gridSize - 1);
+            float step = _terrainData.MeshSize / (gridSize - 1);
             Vector3 worldPosition = new Vector3(x * step + transform.position.x, 0, y * step + transform.position.z);
 
-            for (int i = 0; i < _parent._octaveCount; i++)
+            for (int i = 0; i < _terrainData.OctaveCount; i++)
             {
-                height += Mathf.PerlinNoise(worldPosition.x * currentFrequency + _parent._seed, worldPosition.z * currentFrequency + _parent._seed) * amplitude;
-                amplitude *= _parent._persistence;
-                currentFrequency /= _parent._lacunarity;
+                height += Mathf.PerlinNoise(worldPosition.x * currentFrequency + _terrainData.Seed, worldPosition.z * currentFrequency + _terrainData.Seed) * amplitude;
+                amplitude *= _terrainData.Persistence;
+                currentFrequency /= _terrainData.Lacunarity;
 
-                height *= _parent._terrace;
+                height *= _terrainData.Terrace;
 
                 int heightInt = (int)height;
-                height = (float)heightInt / _parent._terrace;
+                height = (float)heightInt / _terrainData.Terrace;
             }
             
-            return height * _parent._heightMultiplier;
+            return height * _terrainData.HeightMultiplier;
         }
 
         public void UpdateLOD(float distance)
         {
             Mesh newMesh = null;
 
-            if (distance < _parent._minLODDIstance)
+            if (distance < _terrainData.MinLODDIstance)
             {
                 newMesh = _lodMeshes[0];
             }
-            else if (distance < _parent._minLODDIstance * 2f)
+            else if (distance < _terrainData.MinLODDIstance * 2f)
             {
                 newMesh = _lodMeshes[1];
             }
@@ -196,7 +198,7 @@ namespace TerrainGen
 
         private bool IsEdgeVertex(Vector3 vertex, int gridSize)
         {
-            float step = _parent._meshSize / (gridSize - 1);
+            float step = _terrainData.MeshSize / (gridSize - 1);
             int x = Mathf.RoundToInt(vertex.x / step);
             int z = Mathf.RoundToInt(vertex.z / step);
 

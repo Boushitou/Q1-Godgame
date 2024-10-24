@@ -161,7 +161,7 @@ namespace TerrainModif
             int flatCount = 0;
             for (int i = 0; i < vertices.Count - 1; i++)
             {
-                if (Mathf.Approximately(vertices[i].y, vertices[i + 1].y) /*vertices[i].y == vertices[i + 1].y*/)
+                if (Mathf.Approximately(vertices[i].y, vertices[i + 1].y))
                     flatCount++;
             }
             
