@@ -47,14 +47,9 @@ namespace Player
         public void Zoom(float zoom)
         {
             _zoomLevel += zoom * _sensitivity;
-            
-            if (_zoomLevel < _minZoom)
-            {
-                _zoomLevel = _minZoom;
-            }
+            _zoomLevel = _zoomLevel < _minZoom ? _minZoom : _zoomLevel;
         
             _zoomPosition = Mathf.MoveTowards(_zoomPosition, _zoomLevel, _speed * Time.deltaTime);
-        
             _cam.position = _transform.position + (_cam.forward * _zoomPosition);
         }
 

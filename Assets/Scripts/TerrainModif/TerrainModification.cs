@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using TerrainGen;
+using UnityEngine.EventSystems;
 
 namespace TerrainModif
 {
@@ -13,18 +14,24 @@ namespace TerrainModif
         private float _range = 4f;
 
         private float _targetHeight = 0f;
+        private LayerMask _terrainLayer;
+        private List<GameObject> _treesInRange = new List<GameObject>();
         
         private void Start()
         {
             _cam = transform.GetChild(0);
+            _terrainLayer = LayerMask.GetMask("Ground");
         }
 
         private void ModifyTerrain(Vector3 direction)
         {
+            if (EventSystem.current.IsPointerOverGameObject())
+                return;
+            
             Ray ray = _cam.GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
 
-            if (!Physics.Raycast(ray, out hit))
+            if (!Physics.Raycast(ray, out hit, _terrainLayer))
                 return;
 
             MeshCollider meshCollider = hit.collider as MeshCollider;
@@ -43,14 +50,14 @@ namespace TerrainModif
             {
                 Mesh mesh = meshes[lodIndex];
                 Vector3[] vertices = mesh.vertices;
-                ModifyVertices(vertices, meshCollider, hit.point, direction, true);
+                ModifyVertices(vertices, meshCollider, hit.point, direction, true, chunk);
 
                 foreach (Chunk neighbor in chunk.Neighbors.Values)
                 {
                     Mesh neighborMesh = neighbor.GetLODMeshes()[lodIndex];
                     Vector3[] neighborVertices = neighborMesh.vertices;
                     MeshCollider neighborMeshCollider = neighbor.GetComponent<MeshCollider>();
-                    ModifyVertices(neighborVertices, neighborMeshCollider, hit.point, direction, false);
+                    ModifyVertices(neighborVertices, neighborMeshCollider, hit.point, direction, false, neighbor);
                     
                     neighborMesh.SetVertices(neighborVertices);
                     neighborMesh.RecalculateNormals();
@@ -62,7 +69,6 @@ namespace TerrainModif
                 mesh.RecalculateNormals();
                 mesh.RecalculateBounds();
             }
-            
             meshCollider.sharedMesh = chunk.CurrentMesh;
         }
 
@@ -99,7 +105,7 @@ namespace TerrainModif
             return lowestVertex;
         }
 
-        private void ModifyVertices(Vector3[] vertices, MeshCollider meshCollider, Vector3 hitPoint, Vector3 direction, bool isMainMesh)
+        private void ModifyVertices(Vector3[] vertices, MeshCollider meshCollider, Vector3 hitPoint, Vector3 direction, bool isMainMesh, Chunk chunk)
         {
             List<Vector3> verticesInRange = GetVerticesInRangeInMesh(vertices, meshCollider, hitPoint);
             
@@ -113,6 +119,9 @@ namespace TerrainModif
                              return;
                          vertices[i] += direction;
                          _targetHeight = vertices[i].y;
+                         Vector3 verticeWorldPos = meshCollider.transform.TransformPoint(vertices[i]);
+                         List<GameObject> trees = chunk.GetTreesOnVertices(verticeWorldPos);
+                         UpdateTreesOnVertices(trees);
                      }
                  }
              }
@@ -125,6 +134,9 @@ namespace TerrainModif
                         Vector3 vertex = vertices[i];
                         vertex.y = _targetHeight;
                         vertices[i] = vertex;
+                        Vector3 verticeWorldPos = meshCollider.transform.TransformPoint(vertices[i]);
+                        List<GameObject> trees = chunk.GetTreesOnVertices(verticeWorldPos);
+                        UpdateTreesOnVertices(trees);
                     }
                 }
             }
@@ -165,6 +177,16 @@ namespace TerrainModif
             }
             
             return flatCount == vertices.Count - 1;
+        }
+
+        private void UpdateTreesOnVertices(List<GameObject> trees)
+        {
+            foreach (GameObject tree in trees)
+            {
+                Vector3 treePos = tree.transform.position;
+                treePos.y = _targetHeight;
+                tree.transform.position = treePos;
+            }
         }
 
         public void ElevateTerrain(float amount)

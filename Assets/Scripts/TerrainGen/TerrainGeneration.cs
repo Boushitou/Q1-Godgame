@@ -22,6 +22,7 @@ namespace TerrainGen
         private Dictionary<Vector2Int, GameObject> _chunks = new Dictionary<Vector2Int, GameObject>();
         private List<Vector2Int> _currentlyVisibleChunks = new List<Vector2Int>();
         private float maxChunkCoord = 0f;
+        private int numberOfChunks = 0;
 
         private void Start()
         {
@@ -61,6 +62,7 @@ namespace TerrainGen
                     else
                     {
                         GameObject chunk = Instantiate(_chunkPrefab, new Vector3(viewedChunkCord.x * terrainData.MeshSize, 0, viewedChunkCord.y * terrainData.MeshSize), Quaternion.identity);
+                        chunk.name = "Chunk " + ++numberOfChunks;
                         chunk.transform.SetParent(transform);
                         
                         if (chunk.TryGetComponent(out Chunk terrainGeneration))

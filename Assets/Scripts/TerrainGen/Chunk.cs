@@ -20,6 +20,8 @@ namespace TerrainGen
         private MeshCollider _meshCollider;
         private TerrainData _terrainData;
 
+        private readonly float _treeModifierRange = 2f;
+
         public void GenerateMeshes(TerrainData terrainData)
         {
             _meshFilter = GetComponent<MeshFilter>();
@@ -243,7 +245,7 @@ namespace TerrainGen
             foreach (Vector2 point in points)
             {
                 float height = GetHeight((int)point.x, (int)point.y, _terrainData.GridSize);
-                Vector3 worldPos = new Vector3(point.x + transform.position.x, height, point.y + transform.position.z);
+                Vector3 worldPos = new Vector3((int)point.x + transform.position.x, height, (int)point.y + transform.position.z);
                 treePositions.Add(worldPos);
             }
 
@@ -271,6 +273,22 @@ namespace TerrainGen
                 
                 treeRenderer.enabled = visible;
             }
+        }
+
+        public List<GameObject> GetTreesOnVertices(Vector3 vertices)
+        {
+            List<GameObject> treesInRange = new List<GameObject>();
+            
+            foreach (GameObject tree in _trees)
+            {
+                Vector3 treePos = tree.transform.position + Vector3.down * tree.transform.localScale.y / 2;
+                if (vertices.x - treePos.x < _treeModifierRange && vertices.z - treePos.z < _treeModifierRange)
+                {
+                    treesInRange.Add(tree);
+                }
+            }
+
+            return treesInRange;
         }
 
         public Mesh[] GetLODMeshes()
