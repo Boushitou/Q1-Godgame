@@ -34,7 +34,7 @@ namespace TerrainGen
                     {
                         points.Add(candidate);
                         spawnPoints.Add(candidate);
-                        grid[(int) (candidate.x / cellSize), (int) (candidate.y / cellSize)] = points.Count;
+                        grid[(int)(candidate.x / cellSize), (int)(candidate.y / cellSize)] = points.Count;
                         candidateAccepted = true;
                         break;
                     }
@@ -67,16 +67,17 @@ namespace TerrainGen
                         if (pointIndex != -1)
                         {
                             float sqrDst = (candidate - points[pointIndex]).sqrMagnitude;
-                            if (sqrDst < radius)
+                            if (sqrDst < radius * radius)
                             {
                                 return false;
                             }
                         }
                     }
                 }
+
+                return true;
             }
-            
-            return true;
+            return false;
         }
     }  
 }

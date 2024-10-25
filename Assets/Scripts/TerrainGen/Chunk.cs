@@ -14,6 +14,7 @@ namespace TerrainGen
         public Mesh CurrentMesh { get; private set; }
         public Dictionary<Vector2Int, Chunk> Neighbors = new Dictionary<Vector2Int, Chunk>();
         private Mesh[] _lodMeshes = new Mesh[3];
+        private List<GameObject> _trees = new List<GameObject>();
         
         private MeshFilter _meshFilter;
         private MeshCollider _meshCollider;
@@ -148,14 +149,18 @@ namespace TerrainGen
             if (distance < _terrainData.MinLODDIstance)
             {
                 newMesh = _lodMeshes[0];
+                SetTreeVisibility(true);
             }
             else if (distance < _terrainData.MinLODDIstance * 2f)
             {
                 newMesh = _lodMeshes[1];
+                SetTreeVisibility(true);
             }
             else
             {
                 newMesh = _lodMeshes[2];
+                foreach (GameObject tree in _trees)
+                    SetTreeVisibility(false);
             }
 
             if (CurrentMesh != newMesh)
@@ -233,7 +238,7 @@ namespace TerrainGen
             List<Vector3> treePositions = new List<Vector3>();
             Vector2 sampleRegion = new Vector2(_terrainData.MeshSize, _terrainData.MeshSize);
 
-            List<Vector2> points = PoissonDiscSampling.GeneratePoints(1f, sampleRegion);
+            List<Vector2> points = PoissonDiscSampling.GeneratePoints(_terrainData.TreeRadius, sampleRegion);
 
             foreach (Vector2 point in points)
             {
@@ -244,8 +249,27 @@ namespace TerrainGen
 
             foreach (Vector3 position in treePositions)
             {
-                GameObject tree = Instantiate(_terrainData.TreePrefab, position, Quaternion.identity, transform);
-                tree.transform.SetParent(gameObject.transform);
+                if (position.y < 5f && position.y > 3f)
+                {
+                    GameObject tree = Instantiate(_terrainData.TreePrefab, position, Quaternion.identity, transform);
+                    Vector3 treePos = tree.transform.position + Vector3.up * tree.transform.localScale.y / 2;
+                    tree.transform.position = treePos;
+                    tree.transform.SetParent(gameObject.transform);
+                    
+                    _trees.Add(tree);
+                }
+            }
+        }
+        
+        public void SetTreeVisibility(bool visible)
+        {
+            foreach (GameObject tree in _trees)
+            {
+                MeshRenderer treeRenderer = tree.GetComponent<MeshRenderer>();
+                if (treeRenderer.enabled == visible)
+                    return;
+                
+                treeRenderer.enabled = visible;
             }
         }
 

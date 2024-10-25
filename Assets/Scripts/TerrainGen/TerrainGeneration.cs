@@ -141,6 +141,7 @@ namespace TerrainGen
         [Header("Mesh Options")] 
         [Range(0, 256)] public int GridSize;
         [Range(2, 32)] public float MeshSize;
+        
         [Header("Noise Options")]
         [Range(0, 1)] public float Frequency;
         public float HeightMultiplier;
@@ -149,9 +150,12 @@ namespace TerrainGen
         [Range(1, 20)] public int OctaveCount;
         public uint Seed;
         public int Terrace;
+        
         [Header("Chunk Generation")]
         public float MinLODDIstance;
-
+        
+        [Header("Tree Generation")]
         public GameObject TreePrefab;
+        public float TreeRadius;
     }
 }

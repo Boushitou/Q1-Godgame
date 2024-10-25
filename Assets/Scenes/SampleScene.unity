@@ -868,6 +868,9 @@ MonoBehaviour:
     Seed: 14
     Terrace: 10
     MinLODDIstance: 50
+    TreePrefab: {fileID: 7690933415444032754, guid: 32be367217d3a0d46b11b9d23485f669,
+      type: 3}
+    TreeRadius: 5
   _chunkPrefab: {fileID: 6311001271108563835, guid: b4aa4c002d5215448b7a5be5331eee96,
     type: 3}
   _camera: {fileID: 1504328188}
