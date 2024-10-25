@@ -261,7 +261,7 @@ namespace TerrainGen
             }
         }
         
-        public void SetTreeVisibility(bool visible)
+        private void SetTreeVisibility(bool visible)
         {
             foreach (GameObject tree in _trees)
             {
