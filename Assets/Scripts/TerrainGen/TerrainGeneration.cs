@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
+using Data;
 
 namespace TerrainGen
 {
@@ -23,6 +24,11 @@ namespace TerrainGen
         private List<Vector2Int> _currentlyVisibleChunks = new List<Vector2Int>();
         private float maxChunkCoord = 0f;
         private int numberOfChunks = 0;
+
+        private void Awake()
+        {
+            terrainData.Seed = (GameSettings.Seed + 14) % 10000; //range: 0 to 9999
+        }
 
         private void Start()
         {
