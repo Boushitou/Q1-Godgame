@@ -158,6 +158,7 @@ namespace TerrainGen
         [Range(1, 20)] public int OctaveCount;
         public uint Seed;
         public int Terrace;
+        public float WaterLevel;
         
         [Header("Chunk Generation")]
         public float MinLODDIstance;
