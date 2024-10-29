@@ -7,7 +7,6 @@ namespace TerrainGen
     public class Chunk : MonoBehaviour
     {
         private List<Vector3> _vertices = new List<Vector3>();
-        private List<Vector3> _waterVertices = new List<Vector3>();
         private List<int> _triangles = new List<int>();
         private List<int> _waterTriangles = new List<int>();
         private List<Vector2> _uvs = new List<Vector2>();
@@ -34,45 +33,17 @@ namespace TerrainGen
 
             for (int i = 0; i < _lodMeshes.Length; i++)
             {
-                Mesh mesh = new Mesh();
-                mesh.subMeshCount = 2;
-            
+                _waterTriangles.Clear();
                 Vector3[,] heightmap = new Vector3[gridSize, gridSize];
             
                 _vertices = CreateVertices(heightmap, gridSize);
-                _waterVertices = CreateWaterVertices(gridSize);
-                
-                // List<Vector3> allVertices = new List<Vector3>(_vertices);
-                // allVertices.AddRange(_waterVertices);
-                
                 _triangles = CreateTriangles(gridSize);
-                //_waterTriangles = CreateWaterTriangles(gridSize);
-                
                 _uvs = CreateUvs(gridSize);
-                
-                _vertices.Add(new Vector3(0, terrainData.WaterLevel, 0));
-                _vertices.Add(new Vector3(0, terrainData.WaterLevel, terrainData.MeshSize));
-                _vertices.Add(new Vector3(terrainData.MeshSize, terrainData.WaterLevel, terrainData.MeshSize));
-                _vertices.Add(new Vector3(terrainData.MeshSize, terrainData.WaterLevel, 0));
 
-                _waterTriangles.Add(_vertices.Count - 4);
-                _waterTriangles.Add(_vertices.Count - 3);
-                _waterTriangles.Add(_vertices.Count - 2);
-
-                _waterTriangles.Add(_vertices.Count - 4);
-                _waterTriangles.Add(_vertices.Count - 2);
-                _waterTriangles.Add(_vertices.Count - 1);
-
+                CreateWater(gridSize);
                 
-                mesh.SetVertices(_vertices);
-                mesh.SetTriangles(_triangles, 0);
-                mesh.SetTriangles(_waterTriangles, 1);
-                //mesh.SetUVs(0, _uvs);
-                mesh.RecalculateNormals();  
-                //_normals = mesh.normals.ToList();
-                //AverageNormalsWithNeighbor(mesh, i);
-                
-                _waterTriangles.Clear();
+                Mesh mesh = new Mesh();
+                SetMesh(mesh);
                 _lodMeshes[i] = mesh;
                 gridSize /= 2;
             }
@@ -103,23 +74,6 @@ namespace TerrainGen
 
             return vertices;
         }
-
-        private List<Vector3> CreateWaterVertices(int gridSize)
-        {
-            List<Vector3> waterVertices = new List<Vector3>();
-
-            for (int i = 0; i < gridSize; i++)
-            {
-                for (int j = 0; j < gridSize; j++)
-                {
-                    float step = _terrainData.MeshSize / (gridSize - 1);
-
-                    waterVertices.Add(new Vector3(i * step, _terrainData.WaterLevel, j * step));
-                }
-            }
-
-            return waterVertices;
-        }
         
         private List<int> CreateTriangles(int gridSize)
         {
@@ -144,27 +98,33 @@ namespace TerrainGen
             return triangles;
         }
 
-        private List<int> CreateWaterTriangles(int gridSize)
+        private void CreateWater(int gridSize)
         {
-            List<int> waterTriangles = new List<int>();
-
             for (int i = 0; i < gridSize - 1; i++)
             {
                 for (int j = 0; j < gridSize - 1; j++)
                 {
                     int cornerIndex = i + j * gridSize;
 
-                    waterTriangles.Add(cornerIndex + _vertices.Count);
-                    waterTriangles.Add(cornerIndex + 1 + _vertices.Count);
-                    waterTriangles.Add(cornerIndex + 1 + gridSize + _vertices.Count);
+                    _waterTriangles.Add(cornerIndex + _vertices.Count);
+                    _waterTriangles.Add(cornerIndex + 1 + _vertices.Count);
+                    _waterTriangles.Add(cornerIndex + 1 + gridSize + _vertices.Count);
 
-                    waterTriangles.Add(cornerIndex + _vertices.Count);
-                    waterTriangles.Add(cornerIndex + 1 + gridSize + _vertices.Count);
-                    waterTriangles.Add(cornerIndex + gridSize + _vertices.Count);
+                    _waterTriangles.Add(cornerIndex + _vertices.Count);
+                    _waterTriangles.Add(cornerIndex + 1 + gridSize + _vertices.Count);
+                    _waterTriangles.Add(cornerIndex + gridSize + _vertices.Count);
                 }
             }
-
-            return waterTriangles;
+            
+            for (int i = 0; i < gridSize; i++)
+            {
+                for (int j = 0; j < gridSize; j++)
+                {
+                    float step = _terrainData.MeshSize / (gridSize - 1);
+                    _vertices.Add(new Vector3(i * step, _terrainData.WaterLevel, j * step));
+                    _uvs.Add(new Vector2(i / step, j / step));
+                }
+            }
         }
         
         private List<Vector2> CreateUvs(int gridSize)
@@ -207,6 +167,18 @@ namespace TerrainGen
             }
             
             return height * _terrainData.HeightMultiplier;
+        }
+
+        private void SetMesh(Mesh mesh)
+        {
+            mesh.subMeshCount = 2;
+            mesh.SetVertices(_vertices);
+            mesh.SetTriangles(_triangles, 0);
+            mesh.SetTriangles(_waterTriangles, 1);
+            mesh.SetUVs(0, _uvs);
+            mesh.RecalculateNormals();  
+            //_normals = mesh.normals.ToList();
+            //AverageNormalsWithNeighbor(mesh, i);
         }
 
         public void UpdateLOD(float distance)
