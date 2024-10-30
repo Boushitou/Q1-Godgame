@@ -52,7 +52,7 @@ namespace TerrainGen
             CurrentMesh = _lodMeshes[0];
             _meshCollider.sharedMesh = _lodMeshes[0];
 
-            GenerateTrees();
+            //GenerateTrees();
             gameObject.layer = LayerMask.NameToLayer("Ground");
         }
 

@@ -17,14 +17,20 @@ namespace Player
         [SerializeField] private Power[] _powers = default;
         [SerializeField] private Power _currentPower = default;
         [SerializeField] private PauseMenu _pauseMenu = default;
+        [SerializeField] private HUD _hud = default;
 
         private CameraMovement _cameraMovement;
         private TerrainModification _terrainModification;
         private InputState _inputState = InputState.InGame;
 
+        private readonly int _totalFaith = 100;
+        private int _currentFaith;
+
         // Start is called before the first frame update
         void Start()
         {
+            _currentFaith = _totalFaith;
+            
             _cameraMovement = GetComponent<CameraMovement>();
             _terrainModification = GetComponent<TerrainModification>();
             _pauseMenu.PauseGameEvent += ChangeInputState;
@@ -100,7 +106,14 @@ namespace Player
         {
             if (Input.GetMouseButtonDown(0))
             {
+                if (_currentFaith < _currentPower.FaithCost)
+                    return;
+                
                 _currentPower.Invoke(_terrainModification);
+                
+                _currentFaith = _currentFaith - _currentPower.FaithCost < 0 ? 0 : _currentFaith - _currentPower.FaithCost;    
+                
+                _hud.UpdateFaithBar(_currentFaith);
             }
         }
 
