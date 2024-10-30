@@ -1,8 +1,10 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 using Data;
+using Pooling;
 
 namespace TerrainGen
 {
@@ -67,15 +69,7 @@ namespace TerrainGen
                     }
                     else
                     {
-                        GameObject chunk = Instantiate(_chunkPrefab, new Vector3(viewedChunkCord.x * terrainData.MeshSize, 0, viewedChunkCord.y * terrainData.MeshSize), Quaternion.identity);
-                        chunk.name = "Chunk " + ++numberOfChunks;
-                        chunk.transform.SetParent(transform);
-                        
-                        if (chunk.TryGetComponent(out Chunk terrainGeneration))
-                        {
-                             terrainGeneration.GenerateMeshes(terrainData);
-                            _chunks.Add(viewedChunkCord,  chunk);
-                        }
+                        StartCoroutine(CreateChunkAsync(viewedChunkCord));
                     }
                     
                     UpdateChunkNeighbors(viewedChunkCord);
@@ -86,7 +80,10 @@ namespace TerrainGen
             {
                 if (!newVisibleChunks.Contains(coord))
                 {
-                    _chunks[coord].SetActive(false);
+                    GameObject chunk = _chunks[coord];
+                    _chunks.Remove(coord);
+                    PoolingSystem.ReturnObjectPool(chunk);
+                    //_chunks[coord].SetActive(false);
                 }
             }
             
@@ -137,6 +134,22 @@ namespace TerrainGen
             }
         }
 
+        private IEnumerator CreateChunkAsync(Vector2Int chunkCoord)
+        {
+            GameObject chunk = PoolingSystem.SpawnObject(_chunkPrefab,
+                new Vector3(chunkCoord.x * terrainData.MeshSize, 0, chunkCoord.y * terrainData.MeshSize), Quaternion.identity);
+            chunk.name = "Chunk " + ++numberOfChunks;
+            chunk.transform.SetParent(transform);
+
+            if (chunk.TryGetComponent(out Chunk terrainGeneration))
+            {
+                terrainGeneration.GenerateMeshes(terrainData);
+                _chunks.Add(chunkCoord, chunk);
+            }
+
+            yield return null;
+        }
+
         public float GetBounds()
         {
             return maxChunkCoord * terrainData.MeshSize;
@@ -166,5 +179,10 @@ namespace TerrainGen
         [Header("Tree Generation")]
         public GameObject TreePrefab;
         public float TreeRadius;
+    }
+
+    public struct ChunkData
+    {
+        public Mesh Meshes;
     }
 }

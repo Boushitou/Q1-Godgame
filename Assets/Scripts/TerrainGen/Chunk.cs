@@ -59,20 +59,19 @@ namespace TerrainGen
 
         private List<Vector3> CreateVertices(Vector3[,] heightmap, int gridSize)
         {
-            List<Vector3> vertices = new List<Vector3>();
+            _vertices.Clear();
+            float step = _terrainData.MeshSize / (gridSize -1);
 
             for (int i = 0; i < gridSize; i++)
             {
                 for (int j = 0; j < gridSize; j++)
                 {
-                    float step = _terrainData.MeshSize / (gridSize -1);
-                    
                     heightmap[i, j] = new Vector3(i * step, GetHeight(i, j, gridSize), j * step);
-                    vertices.Add(heightmap[i, j]);
+                    _vertices.Add(heightmap[i, j]);
                 }
             }
 
-            return vertices;
+            return _vertices;
         }
         
         private List<int> CreateTriangles(int gridSize)

@@ -1,6 +1,7 @@
 {
 	"name": "TerrainAssembly",
 	"references": [
-		"DataAssembly"
+		"DataAssembly",
+		"PoolingAssembly"
 	]
 }
