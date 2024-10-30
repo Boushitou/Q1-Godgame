@@ -332,5 +332,10 @@ namespace TerrainGen
         {
             return _lodMeshes;
         }
+
+        public bool IsVerticeAtWaterLevel(Vector3 vertex)
+        {
+            return Mathf.Approximately(vertex.y, _terrainData.WaterLevel);
+        }
     }
 }

@@ -117,11 +117,15 @@ namespace TerrainModif
                      {
                          if (vertices[i].y + direction.y > _maxHeight || vertices[i].y + direction.y < _minHeight)
                              return;
+
+                         if (chunk.IsVerticeAtWaterLevel(vertices[i]))
+                             continue;
                          vertices[i] += direction;
                          _targetHeight = vertices[i].y;
                          Vector3 verticeWorldPos = meshCollider.transform.TransformPoint(vertices[i]);
                          List<GameObject> trees = chunk.GetTreesOnVertices(verticeWorldPos);
-                         UpdateTreesOnVertices(trees);
+                         UpdateTreesOnVertices(trees);  
+                         
                      }
                  }
              }
@@ -131,6 +135,8 @@ namespace TerrainModif
                 {
                     if (verticesInRange.Contains(vertices[i]))
                     {
+                        if (chunk.IsVerticeAtWaterLevel(vertices[i]))
+                            continue;
                         Vector3 vertex = vertices[i];
                         vertex.y = _targetHeight;
                         vertices[i] = vertex;
