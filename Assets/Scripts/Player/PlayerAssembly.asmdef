@@ -3,6 +3,7 @@
 	"references": [
 		"TerrainModifAssembly",
 		"PowersAssembly",
-		"TerrainAssembly"
+		"TerrainAssembly",
+		"MenuAssembly"
 	]
 }

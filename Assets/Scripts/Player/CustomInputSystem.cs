@@ -34,9 +34,9 @@ namespace Player
 
         public static bool GetKeyDown(string action)
         {
-            if (_keyMapping.ContainsKey(action))
+            if (_keyMapping.TryGetValue(action, value: out var value))
             {
-                return Input.GetKeyDown(_keyMapping[action]);
+                return Input.GetKeyDown(value);
             }
         
             return false;
@@ -44,9 +44,9 @@ namespace Player
 
         public static float GetAxis(string action)
         {
-            if (_axisMapping.ContainsKey(action))
+            if (_axisMapping.TryGetValue(action, out var value))
             {
-                return Input.GetAxis(_axisMapping[action]);
+                return Input.GetAxis(value);
             }
 
             return 0f;
