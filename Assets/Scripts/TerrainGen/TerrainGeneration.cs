@@ -23,6 +23,7 @@ namespace TerrainGen
         private int _chunkVisibleInViewDst;
         private Vector2Int _currentChunkCoord;
         private Dictionary<Vector2Int, GameObject> _chunks = new Dictionary<Vector2Int, GameObject>();
+        private Dictionary<Vector2Int, ChunkData> _chunkDatas = new Dictionary<Vector2Int, ChunkData>();
         private List<Vector2Int> _currentlyVisibleChunks = new List<Vector2Int>();
         private float maxChunkCoord = 0f;
         private int numberOfChunks = 0;
@@ -80,6 +81,7 @@ namespace TerrainGen
             {
                 if (!newVisibleChunks.Contains(coord))
                 {
+                    SaveChunkData(coord);
                     GameObject chunk = _chunks[coord];
                     _chunks.Remove(coord);
                     PoolingSystem.ReturnObjectPool(chunk);
@@ -150,6 +152,12 @@ namespace TerrainGen
             yield return null;
         }
 
+        private void SaveChunkData(Vector2Int chunkCoord)
+        {
+            Chunk chunk = _chunks[chunkCoord].GetComponent<Chunk>();
+            _chunkDatas[chunkCoord] = chunk.ChunkData;
+        }
+
         public float GetBounds()
         {
             return maxChunkCoord * terrainData.MeshSize;
@@ -183,6 +191,6 @@ namespace TerrainGen
 
     public struct ChunkData
     {
-        public Mesh Meshes;
+        public LODMeshes[] Meshes;
     }
 }

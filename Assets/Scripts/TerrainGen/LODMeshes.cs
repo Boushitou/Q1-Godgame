@@ -15,21 +15,22 @@ namespace TerrainGen
         private List<Vector2> _uvs = new List<Vector2>();
         private List<Vector3> _normals = new List<Vector3>();
 
+        private readonly float _meshSize;
+
         public LODMeshes(int gridSize, float distanceTreshold, TerrainData terrainData, Vector3[,] heightmap)
         {
             DistanceTreshold = distanceTreshold;
+            _meshSize = terrainData.MeshSize;
             Mesh = GenerateMesh(gridSize, terrainData, heightmap);
         }
 
         private Mesh GenerateMesh(int gridSize, TerrainData terrainData, Vector3[,] heightmap)
         {
-            _waterTriangles.Clear();
-
-            _vertices = CreateVertices(heightmap, gridSize, terrainData);
-            _triangles = CreateTriangles(gridSize);
-            _uvs = CreateUvs(gridSize, terrainData);
-
-            CreateWater(gridSize);
+            CreateVertices(heightmap, gridSize);
+            CreateTriangles(gridSize);
+            // CreateWaterVertice(gridSize, terrainData);
+            // CreateWaterTriangle(gridSize);
+            CreateUvs(gridSize, terrainData);
 
             Mesh mesh = new Mesh();
             SetMesh(mesh);
@@ -37,14 +38,16 @@ namespace TerrainGen
             return mesh;
         }
 
-        private void CreateWater(int gridSize)
+        private void CreateWaterTriangle(int gridSize)
         {
+            _waterTriangles.Clear();
+            
             for (int i = 0; i < gridSize - 1; i++)
             {
                 for (int j = 0; j < gridSize - 1; j++)
                 {
                     int cornerIndex = i + j * gridSize;
-
+                    
                     _waterTriangles.Add(cornerIndex + _vertices.Count);
                     _waterTriangles.Add(cornerIndex + 1 + _vertices.Count);
                     _waterTriangles.Add(cornerIndex + 1 + gridSize + _vertices.Count);
@@ -52,6 +55,18 @@ namespace TerrainGen
                     _waterTriangles.Add(cornerIndex + _vertices.Count);
                     _waterTriangles.Add(cornerIndex + 1 + gridSize + _vertices.Count);
                     _waterTriangles.Add(cornerIndex + gridSize + _vertices.Count);
+                }
+            }
+        }
+
+        private void CreateWaterVertice(int gridSize, TerrainData terrainData)
+        {
+            float step = terrainData.MeshSize / (gridSize - 1);
+            for (int i = 0; i < gridSize; i++)
+            {
+                for (int j = 0; j < gridSize; j++)
+                {
+                    _vertices.Add(new Vector3(i * step, 0, j * step));
                 }
             }
         }
@@ -68,10 +83,10 @@ namespace TerrainGen
             //AverageNormalsWithNeighbor(mesh, i);
         }
         
-        private List<Vector3> CreateVertices(Vector3[,] heightmap, int gridSize, TerrainData terrainData)
+        private void CreateVertices(Vector3[,] heightmap, int gridSize)
         {
             _vertices.Clear();
-
+            
             for (int i = 0; i < gridSize; i++)
             {
                 for (int j = 0; j < gridSize; j++)
@@ -79,13 +94,11 @@ namespace TerrainGen
                     _vertices.Add(heightmap[i, j]);
                 }
             }
-
-            return _vertices;
         }
         
-        private List<int> CreateTriangles(int gridSize)
+        private void CreateTriangles(int gridSize)
         {
-            List<int> triangles = new List<int>();
+            _triangles.Clear();
 
             for (int i = 0; i < gridSize - 1; i++)
             {
@@ -93,34 +106,67 @@ namespace TerrainGen
                 {
                     int cornerIndex = i + j * gridSize;
                     
-                    triangles.Add(cornerIndex);
-                    triangles.Add(cornerIndex + 1);
-                    triangles.Add(cornerIndex + 1 + gridSize);
+                    _triangles.Add(cornerIndex);
+                    _triangles.Add(cornerIndex + 1);
+                    _triangles.Add(cornerIndex + 1 + gridSize);
                     
-                    triangles.Add(cornerIndex);
-                    triangles.Add(cornerIndex + 1 + gridSize);
-                    triangles.Add(cornerIndex + gridSize);  
+                    _triangles.Add(cornerIndex);
+                    _triangles.Add(cornerIndex + 1 + gridSize);
+                    _triangles.Add(cornerIndex + gridSize);  
                 }
             }
-
-            return triangles;
         }
-        private List<Vector2> CreateUvs(int gridSize, TerrainData terrainData)
+        
+        private void CreateUvs(int gridSize, TerrainData terrainData)
         {
-            List<Vector2> uvs = new List<Vector2>();
-            
+            float step = terrainData.MeshSize / (gridSize - 1);
             for (int i = 0; i < gridSize; i++)
             {
                 for (int j = 0; j < gridSize; j++)
                 {
-                    float step = terrainData.MeshSize / (gridSize - 1);
-                    
                     Vector2 uv = new Vector2(i / step, j / step);
-                    uvs.Add(uv);
+                    _uvs.Add(uv);
                 }
             }
-
-            return uvs;
+        }
+        
+        public List<Vector3> GetEdgeVertices(int gridSize)
+        {
+            List<Vector3> edgeVertices = new List<Vector3>();
+            
+            foreach (Vector3 vertex in _vertices)
+            {
+                if (IsEdgeVertex(vertex, gridSize))
+                {
+                    edgeVertices.Add(vertex);
+                }
+            }
+        
+            return edgeVertices;
+        }
+        
+        private bool IsEdgeVertex(Vector3 vertex, int gridSize)
+        {
+            float step = _meshSize / (gridSize - 1);
+            int x = Mathf.RoundToInt(vertex.x / step);
+            int z = Mathf.RoundToInt(vertex.z / step);
+        
+            return x == 0 || x == gridSize - 1 || z == 0 || z == gridSize - 1;
+        }
+        
+        public List<Vector3> GetEdgeNormals(int gridSize)
+        {
+            List<Vector3> edgeNormals = new List<Vector3>();
+            
+            foreach (Vector3 normal in _normals)
+            {
+                if (IsEdgeVertex(normal, gridSize))
+                {
+                    edgeNormals.Add(normal);
+                }
+            }
+        
+            return edgeNormals;
         }
     }
 }

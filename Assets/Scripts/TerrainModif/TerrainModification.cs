@@ -42,19 +42,19 @@ namespace TerrainModif
             if (chunk == null)
                 return;
             
-            Mesh[] meshes = chunk.GetLODMeshes();
+            LODMeshes[] meshes = chunk.GetLODMeshes();
             
-            _targetHeight = GetTargetHeight(GetVerticesInRangeInMesh(meshes[0].vertices, meshCollider, hit.point), direction);
+            _targetHeight = GetTargetHeight(GetVerticesInRangeInMesh(meshes[0].Mesh.vertices, meshCollider, hit.point), direction);
             
             for (int lodIndex = 0; lodIndex < meshes.Length; lodIndex++)
             {
-                Mesh mesh = meshes[lodIndex];
+                Mesh mesh = meshes[lodIndex].Mesh;
                 Vector3[] vertices = mesh.vertices;
                 ModifyVertices(vertices, meshCollider, hit.point, direction, true, chunk);
 
                 foreach (Chunk neighbor in chunk.Neighbors.Values)
                 {
-                    Mesh neighborMesh = neighbor.GetLODMeshes()[lodIndex];
+                    Mesh neighborMesh = neighbor.GetLODMeshes()[lodIndex].Mesh;
                     Vector3[] neighborVertices = neighborMesh.vertices;
                     MeshCollider neighborMeshCollider = neighbor.GetComponent<MeshCollider>();
                     ModifyVertices(neighborVertices, neighborMeshCollider, hit.point, direction, false, neighbor);

@@ -6,26 +6,48 @@ namespace TerrainGen
     {
         private TerrainData _terrainData;
         private Vector3[,] _heightMap;
+        private int _gridSize;
         
-        public HeightMapGenerator(TerrainData terrainData, Transform chunk)
+        public HeightMapGenerator(TerrainData terrainData, Transform chunk, int gridSize)
         {
             _terrainData = terrainData;
+            _gridSize = gridSize;
             GenerateHeightMap(chunk);
         }
 
         private void GenerateHeightMap(Transform chunk)
         {
-            int gridSize = _terrainData.GridSize;
-            _heightMap = new Vector3[gridSize, gridSize];
-            float step = _terrainData.MeshSize / (gridSize -1);
+            _heightMap = new Vector3[_gridSize, _gridSize];
+            float step = _terrainData.MeshSize / (_gridSize -1);
             
-            for (int x = 0; x < gridSize; x++)
+            for (int x = 0; x < _gridSize; x++)
             {
-                for (int z = 0; z < gridSize; z++)
+                for (int z = 0; z < _gridSize; z++)
                 {
-                    _heightMap[x, z] = new Vector3(x * step, CalculateHeight(x, z, gridSize, chunk), z * step);
+                    _heightMap[x, z] = new Vector3(x * step, CalculateHeight(x, z, _gridSize, chunk), z * step);
                 }
             }
+        }
+        
+        public Vector3[,] SampleHeightMap(Vector3[,] highResHeightMap, int targetGridSize)
+        {
+            int highResGridSize = highResHeightMap.GetLength(0);
+            Vector3[,] sampledHeightMap = new Vector3[targetGridSize, targetGridSize];
+
+            float step = (float)highResGridSize / (targetGridSize - 1);
+
+            for (int x = 0; x < targetGridSize; x++)
+            {
+                for (int z = 0; z < targetGridSize; z++)
+                {
+                    int highResX = Mathf.RoundToInt(x * step);
+                    int highResZ = Mathf.RoundToInt(z * step);
+
+                    sampledHeightMap[x, z] = highResHeightMap[Mathf.Clamp(highResX, 0, highResGridSize - 1), Mathf.Clamp(highResZ, 0, highResGridSize - 1)];
+                }
+            }
+
+            return sampledHeightMap;
         }
 
         private float CalculateHeight(int x, int y, int gridSize, Transform chunk)

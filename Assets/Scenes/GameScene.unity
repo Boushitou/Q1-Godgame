@@ -2166,7 +2166,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d1f5d19bb9936b4b8ee42a86b2f37e6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _speed: 20
+  _speed: 30
   _sensitivity: 2
   _terrain: {fileID: 1296431679}
   _clipRadius: 3
