@@ -95,13 +95,13 @@ namespace Pooling
 
         public static void ReturnObjectPool(GameObject obj)
         {
-            string objName = obj.name.Substring(0, obj.name.Length - 7); //7 is the number of character for "(Clone)"
+            //string objName = obj.name.Substring(0, obj.name.Length - 7); //7 is the number of character for "(Clone)"
             
             PoolObjectInfo pool = null;
             
             foreach (PoolObjectInfo p in ObjectPools)
             {
-                if (p.LookupString == objName)
+                if (p.LookupString == obj.name)
                 {
                     pool = p;
                     break;
@@ -110,7 +110,7 @@ namespace Pooling
 
             if (pool == null)
             {
-                Debug.LogWarning("Trying to release an object that is not pooled: " + objName);
+                Debug.LogWarning("Trying to release an object that is not pooled: " + obj.name);
                 Destroy(obj);
             }
             else

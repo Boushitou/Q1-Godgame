@@ -19,6 +19,9 @@ namespace TerrainGen
         private readonly float _treeModifierRange = 2f;
         public ChunkData ChunkData;
 
+        private float _refreshRate = 0.5f;
+        private float _refreshTime = 0f;
+
         public void GenerateMeshes(TerrainData terrainData)
         {
             _meshFilter = GetComponent<MeshFilter>();
@@ -46,6 +49,10 @@ namespace TerrainGen
 
         public void UpdateLOD(float distance)
         {
+            _refreshTime += Time.deltaTime;
+            if (_refreshTime < _refreshRate)
+                return;
+            
             Mesh newMesh = null;
             int lodIndex = 0;
 
@@ -75,6 +82,8 @@ namespace TerrainGen
                 _meshCollider.sharedMesh = newMesh;
                 CurrentMesh = newMesh;
             }
+
+            _refreshTime = 0f;
         }
         
         // private void AverageNormalsWithNeighbor(Mesh mesh, int lodIndex)
@@ -119,8 +128,6 @@ namespace TerrainGen
                 if (position.y < 5f && position.y > 3f)
                 {
                     GameObject tree = Instantiate(_terrainData.TreePrefab, position, Quaternion.identity, transform);
-                    Vector3 treePos = tree.transform.position + Vector3.up * tree.transform.localScale.y / 2;
-                    tree.transform.position = treePos;
                     tree.transform.SetParent(gameObject.transform);
                     
                     _trees.Add(tree);
@@ -132,28 +139,20 @@ namespace TerrainGen
         {
             foreach (GameObject tree in _trees)
             {
-                MeshRenderer treeRenderer = tree.GetComponent<MeshRenderer>();
-                if (treeRenderer.enabled == visible)
+                if (tree.activeSelf == visible)
                     return;
                 
-                treeRenderer.enabled = visible;
+                tree.SetActive(visible);
             }
         }
 
-        public List<GameObject> GetTreesOnVertices(Vector3 vertices)
+        public void ReajustTrees()
         {
-            List<GameObject> treesInRange = new List<GameObject>();
-            
             foreach (GameObject tree in _trees)
             {
-                Vector3 treePos = tree.transform.position + Vector3.down * tree.transform.localScale.y / 2;
-                if (vertices.x - treePos.x < _treeModifierRange && vertices.z - treePos.z < _treeModifierRange)
-                {
-                    treesInRange.Add(tree);
-                }
+                AlienTree alienTree = tree.GetComponent<AlienTree>();
+                alienTree.ReajustPosition();
             }
-
-            return treesInRange;
         }
         
         public LODMeshes[] GetLODMeshes()

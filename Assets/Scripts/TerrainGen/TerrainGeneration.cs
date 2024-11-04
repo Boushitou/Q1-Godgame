@@ -81,11 +81,8 @@ namespace TerrainGen
             {
                 if (!newVisibleChunks.Contains(coord))
                 {
-                    SaveChunkData(coord);
-                    GameObject chunk = _chunks[coord];
+                    _chunks[coord].SetActive(false);
                     _chunks.Remove(coord);
-                    PoolingSystem.ReturnObjectPool(chunk);
-                    //_chunks[coord].SetActive(false);
                 }
             }
             
@@ -138,9 +135,9 @@ namespace TerrainGen
 
         private IEnumerator CreateChunkAsync(Vector2Int chunkCoord)
         {
-            GameObject chunk = PoolingSystem.SpawnObject(_chunkPrefab,
+            GameObject chunk = Instantiate(_chunkPrefab,
                 new Vector3(chunkCoord.x * terrainData.MeshSize, 0, chunkCoord.y * terrainData.MeshSize), Quaternion.identity);
-            chunk.name = "Chunk " + ++numberOfChunks;
+            chunk.name = "Chunk";
             chunk.transform.SetParent(transform);
 
             if (chunk.TryGetComponent(out Chunk terrainGeneration))
@@ -192,5 +189,6 @@ namespace TerrainGen
     public struct ChunkData
     {
         public LODMeshes[] Meshes;
+        public List<GameObject> Trees;
     }
 }

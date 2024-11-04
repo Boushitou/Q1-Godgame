@@ -64,12 +64,14 @@ namespace TerrainModif
                     neighborMesh.RecalculateBounds();
                     
                     neighborMeshCollider.sharedMesh = neighbor.CurrentMesh;
+                    neighbor.ReajustTrees();
                 }
                 mesh.SetVertices(vertices);
                 mesh.RecalculateNormals();
                 mesh.RecalculateBounds();
             }
             meshCollider.sharedMesh = chunk.CurrentMesh;
+            chunk.ReajustTrees();
         }
 
         private Vector3 GetHighestVertices(Vector3[] vertices)
@@ -122,10 +124,6 @@ namespace TerrainModif
                              continue;
                          vertices[i] += direction;
                          _targetHeight = vertices[i].y;
-                         Vector3 verticeWorldPos = meshCollider.transform.TransformPoint(vertices[i]);
-                         List<GameObject> trees = chunk.GetTreesOnVertices(verticeWorldPos);
-                         UpdateTreesOnVertices(trees);  
-                         
                      }
                  }
              }
@@ -140,9 +138,6 @@ namespace TerrainModif
                         Vector3 vertex = vertices[i];
                         vertex.y = _targetHeight;
                         vertices[i] = vertex;
-                        Vector3 verticeWorldPos = meshCollider.transform.TransformPoint(vertices[i]);
-                        List<GameObject> trees = chunk.GetTreesOnVertices(verticeWorldPos);
-                        UpdateTreesOnVertices(trees);
                     }
                 }
             }
@@ -184,16 +179,7 @@ namespace TerrainModif
             
             return flatCount == vertices.Count - 1;
         }
-
-        private void UpdateTreesOnVertices(List<GameObject> trees)
-        {
-            foreach (GameObject tree in trees)
-            {
-                Vector3 treePos = tree.transform.position;
-                treePos.y = _targetHeight;
-                tree.transform.position = treePos;
-            }
-        }
+        
 
         public void ElevateTerrain(float amount)
         {
