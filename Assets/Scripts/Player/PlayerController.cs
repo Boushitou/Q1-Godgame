@@ -1,5 +1,4 @@
 using UnityEngine;
-using TerrainModif;
 using Powers;
 using Menus;
 
@@ -128,6 +127,11 @@ namespace Player
         private void ChangeInputState(bool isPaused)
         {
             _inputState = isPaused ? InputState.InMenu : InputState.InGame;
+        }
+
+        public Power GetCurrentPower()
+        {
+            return _currentPower;
         }
     }
 }

@@ -13,5 +13,6 @@ MonoBehaviour:
   m_Name: LowerTerrain
   m_EditorClassIdentifier: 
   FaithCost: 1
+  Range: 4
   TotalCoolDown: 0.5
   ElevationAmount: -1.2

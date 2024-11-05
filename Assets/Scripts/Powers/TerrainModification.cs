@@ -3,7 +3,7 @@ using UnityEngine;
 using TerrainGen;
 using UnityEngine.EventSystems;
 
-namespace TerrainModif
+namespace Powers
 {
     public class TerrainModification : MonoBehaviour
     {
@@ -11,11 +11,10 @@ namespace TerrainModif
         [SerializeField] private float _maxHeight = default;
         [SerializeField] private float _minHeight = default;
         private Transform _cam;
-        private float _range = 4f;
+        private float _range;
 
         private float _targetHeight = 0f;
-        private LayerMask _terrainLayer;
-        private List<GameObject> _treesInRange = new List<GameObject>();
+        private int _terrainLayer;
         
         private void Start()
         {
@@ -23,15 +22,17 @@ namespace TerrainModif
             _terrainLayer = LayerMask.GetMask("Ground");
         }
 
-        private bool ModifyTerrain(Vector3 direction)
+        private bool ModifyTerrain(Vector3 direction, Power currentPower)
         {
+            _range = currentPower.Range;
+            
             if (EventSystem.current.IsPointerOverGameObject())
                 return false;
             
             Ray ray = _cam.GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
 
-            if (!Physics.Raycast(ray, out hit, _terrainLayer))
+            if (!Physics.Raycast(ray, out hit, float.MaxValue, _terrainLayer))
                 return false;
 
             MeshCollider meshCollider = hit.collider as MeshCollider;
@@ -45,15 +46,13 @@ namespace TerrainModif
             LODMeshes[] meshes = chunk.GetLODMeshes();
             
             _targetHeight = GetTargetHeight(GetVerticesInRangeInMesh(meshes[0].Mesh.vertices, meshCollider, hit.point), direction);
-            if (_targetHeight > _maxHeight || _targetHeight < _minHeight)
-                return false;
             
             for (int lodIndex = 0; lodIndex < meshes.Length; lodIndex++)
             {
                 Mesh mesh = meshes[lodIndex].Mesh;
                 Vector3[] vertices = mesh.vertices;
                 ModifyVertices(vertices, meshCollider, hit.point, direction, true, chunk);
-
+                
                 foreach (Chunk neighbor in chunk.Neighbors.Values)
                 {
                     Mesh neighborMesh = neighbor.GetLODMeshes()[lodIndex].Mesh;
@@ -74,7 +73,6 @@ namespace TerrainModif
             }
             meshCollider.sharedMesh = chunk.CurrentMesh;
             chunk.ReajustTrees();
-
             return true;
         }
 
@@ -185,9 +183,9 @@ namespace TerrainModif
         }
         
 
-        public bool ElevateTerrain(float amount)
+        public bool ElevateTerrain(float amount, Power currentPower)
         {
-            return ModifyTerrain(new Vector3(0f, amount, 0f));
+            return ModifyTerrain(new Vector3(0f, amount, 0f), currentPower);
         }
     }
 }
