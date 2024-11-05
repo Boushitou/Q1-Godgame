@@ -108,19 +108,22 @@ namespace TerrainGen
         //
         //     mesh.normals = normals;
         // }
-
+        
         private void GenerateTrees()
         {
             List<Vector3> treePositions = new List<Vector3>();
-            Vector2 sampleRegion = new Vector2(_terrainData.MeshSize, _terrainData.MeshSize);
-        
-            List<Vector2> points = PoissonDiscSampling.GeneratePoints(_terrainData.TreeRadius, sampleRegion);
-        
-            foreach (Vector2 point in points)
+            List <Vector2> clustersCenters = GenerateDiscSamplingPoints(_terrainData.TreeZoneRadius, _terrainData.MeshSize);
+            
+            foreach (Vector2 center in clustersCenters)
             {
-                float height = _heightMapGenerator.GetHeightMap()[Mathf.RoundToInt(point.x), Mathf.RoundToInt(point.y)].y;
-                Vector3 worldPos = new Vector3((int)point.x + transform.position.x, height, (int)point.y + transform.position.z);
-                treePositions.Add(worldPos);
+                List<Vector2> points = GenerateDiscSamplingPoints(_terrainData.TreeRadius, _terrainData.MeshSize);
+
+                foreach (Vector2 point in points)
+                {
+                    float height = _heightMapGenerator.GetHeightMap()[Mathf.RoundToInt(point.x), Mathf.RoundToInt(point.y)].y;
+                    Vector3 worldPos = new Vector3((int)point.x + transform.position.x, height, (int)point.y + transform.position.z);
+                    treePositions.Add(worldPos);  
+                }
             }
         
             foreach (Vector3 position in treePositions)
@@ -133,6 +136,15 @@ namespace TerrainGen
                     _trees.Add(tree);
                 }
             }
+        }
+
+        
+        private List<Vector2> GenerateDiscSamplingPoints(float radius, float region)
+        {
+            Vector2 sampleRegion = new Vector2(region, region);
+            List<Vector2> points = PoissonDiscSampling.GeneratePoints(radius, sampleRegion);
+            
+            return points;
         }
         
         private void SetTreeVisibility(bool visible)

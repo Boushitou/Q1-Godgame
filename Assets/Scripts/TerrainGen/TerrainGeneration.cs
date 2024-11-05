@@ -183,6 +183,8 @@ namespace TerrainGen
         
         [Header("Tree Generation")]
         public GameObject TreePrefab;
+
+        public float TreeZoneRadius;
         public float TreeRadius;
     }
 
