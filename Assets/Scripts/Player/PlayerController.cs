@@ -109,7 +109,10 @@ namespace Player
                 if (_currentFaith < _currentPower.FaithCost)
                     return;
                 
-                _currentPower.Invoke(_terrainModification);
+                bool powerSuccessful = _currentPower.Invoke(_terrainModification);
+
+                if (!powerSuccessful)
+                    return;
                 
                 _currentFaith = _currentFaith - _currentPower.FaithCost < 0 ? 0 : _currentFaith - _currentPower.FaithCost;    
                 

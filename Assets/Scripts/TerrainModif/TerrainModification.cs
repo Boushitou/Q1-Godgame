@@ -23,28 +23,30 @@ namespace TerrainModif
             _terrainLayer = LayerMask.GetMask("Ground");
         }
 
-        private void ModifyTerrain(Vector3 direction)
+        private bool ModifyTerrain(Vector3 direction)
         {
             if (EventSystem.current.IsPointerOverGameObject())
-                return;
+                return false;
             
             Ray ray = _cam.GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
 
             if (!Physics.Raycast(ray, out hit, _terrainLayer))
-                return;
+                return false;
 
             MeshCollider meshCollider = hit.collider as MeshCollider;
             if (meshCollider == null)
-                return;
+                return false;
             
             Chunk chunk = meshCollider.GetComponent<Chunk>();
             if (chunk == null)
-                return;
+                 return false;
             
             LODMeshes[] meshes = chunk.GetLODMeshes();
             
             _targetHeight = GetTargetHeight(GetVerticesInRangeInMesh(meshes[0].Mesh.vertices, meshCollider, hit.point), direction);
+            if (_targetHeight > _maxHeight || _targetHeight < _minHeight)
+                return false;
             
             for (int lodIndex = 0; lodIndex < meshes.Length; lodIndex++)
             {
@@ -72,6 +74,8 @@ namespace TerrainModif
             }
             meshCollider.sharedMesh = chunk.CurrentMesh;
             chunk.ReajustTrees();
+
+            return true;
         }
 
         private Vector3 GetHighestVertices(Vector3[] vertices)
@@ -181,9 +185,9 @@ namespace TerrainModif
         }
         
 
-        public void ElevateTerrain(float amount)
+        public bool ElevateTerrain(float amount)
         {
-            ModifyTerrain(new Vector3(0f, amount, 0f));
+            return ModifyTerrain(new Vector3(0f, amount, 0f));
         }
     }
 }

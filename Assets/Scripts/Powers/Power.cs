@@ -8,6 +8,6 @@ namespace Powers
         public int FaithCost;
         public float TotalCoolDown;
 
-        public abstract void Invoke(TerrainModification terrainModification);
+        public abstract bool Invoke(TerrainModification terrainModification);
     }  
 }
