@@ -26,12 +26,12 @@ namespace Player
             _cameraMovement = GetComponent<CameraMovement>();
             _terrainModification = GetComponent<TerrainModification>();
             _playerPower = GetComponent<PlayerPower>();
-            _pauseMenu.PauseGameEvent += ChangeInputState;
+            PauseMenu.PauseGameEvent += ChangeInputState;
         }
 
         private void OnDestroy()
         {
-            _pauseMenu.PauseGameEvent -= ChangeInputState;
+            PauseMenu.PauseGameEvent -= ChangeInputState;
         }
 
         // Update is called once per frame

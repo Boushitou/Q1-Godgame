@@ -15,4 +15,6 @@ MonoBehaviour:
   FaithCost: 1
   Range: 4
   TotalCoolDown: 0.5
+  Icon: {fileID: 0}
+  DecalTexture: {fileID: 2800000, guid: c8358a8ce4bea3d4c8c436f169a9e62b, type: 3}
   ElevationAmount: 1.2

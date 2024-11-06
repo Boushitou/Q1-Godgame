@@ -10,6 +10,7 @@ namespace Player
         [SerializeField] private HUD _hud = default;
         [SerializeField] private Power[] _powers = default;
         [SerializeField] private Power _currentPower = default;
+        public Power CurrentPower { get => _currentPower; set => _currentPower = value; }
         
         private readonly int _totalFaith = 100;
         private int _currentFaith;
@@ -41,11 +42,6 @@ namespace Player
         {
             _currentPower = power;
             PowerChangeEvent?.Invoke(_currentPower);
-        }
-        
-        public Power GetCurrentPower()
-        {
-            return _currentPower;
         }
     }
   

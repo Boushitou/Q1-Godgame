@@ -13,7 +13,7 @@ namespace Menus
         public bool IsPaused = false;
 
         public delegate void OnPauseGame(bool isPaused);
-        public event OnPauseGame PauseGameEvent;
+        public static event OnPauseGame PauseGameEvent;
 
         private void Start()
         {
