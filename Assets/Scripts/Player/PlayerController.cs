@@ -13,25 +13,19 @@ namespace Player
     [RequireComponent(typeof(CameraMovement), typeof(TerrainModification))]
     public class PlayerController : MonoBehaviour
     {
-        [SerializeField] private Power[] _powers = default;
-        [SerializeField] private Power _currentPower = default;
         [SerializeField] private PauseMenu _pauseMenu = default;
-        [SerializeField] private HUD _hud = default;
 
         private CameraMovement _cameraMovement;
         private TerrainModification _terrainModification;
+        private PlayerPower _playerPower;
         private InputState _inputState = InputState.InGame;
-
-        private readonly int _totalFaith = 100;
-        private int _currentFaith;
 
         // Start is called before the first frame update
         void Start()
         {
-            _currentFaith = _totalFaith;
-            
             _cameraMovement = GetComponent<CameraMovement>();
             _terrainModification = GetComponent<TerrainModification>();
+            _playerPower = GetComponent<PlayerPower>();
             _pauseMenu.PauseGameEvent += ChangeInputState;
         }
 
@@ -50,7 +44,7 @@ namespace Player
                     PauseInput();
                     MovementInput();
                     ZoomInput();
-                    UsePower();
+                    UsePowerInput();
                     break;
                 case InputState.InMenu:
                     PauseInput();
@@ -101,37 +95,17 @@ namespace Player
             _cameraMovement.Zoom(zoom);
         }
 
-        private void UsePower()
+        private void UsePowerInput()
         {
             if (Input.GetMouseButtonDown(0))
             {
-                if (_currentFaith < _currentPower.FaithCost)
-                    return;
-                
-                bool powerSuccessful = _currentPower.Invoke(_terrainModification);
-
-                if (!powerSuccessful)
-                    return;
-                
-                _currentFaith = _currentFaith - _currentPower.FaithCost < 0 ? 0 : _currentFaith - _currentPower.FaithCost;    
-                
-                _hud.UpdateFaithBar(_currentFaith);
+                _playerPower.UsePower(_terrainModification);
             }
-        }
-
-        public void SetPower(Power power)
-        {
-            _currentPower = power;
         }
 
         private void ChangeInputState(bool isPaused)
         {
             _inputState = isPaused ? InputState.InMenu : InputState.InGame;
-        }
-
-        public Power GetCurrentPower()
-        {
-            return _currentPower;
         }
     }
 }

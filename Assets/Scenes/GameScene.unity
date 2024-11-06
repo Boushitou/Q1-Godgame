@@ -472,6 +472,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae862a9738d09434ea37a23115541e9a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _camera: {fileID: 330585545}
 --- !u!114 &366471828
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1193,8 +1194,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1504328189}
-        m_TargetAssemblyTypeName: Player.PlayerController, PlayerAssembly
+      - m_Target: {fileID: 1504328192}
+        m_TargetAssemblyTypeName: Player.PlayerPower, PlayerAssembly
         m_MethodName: SetPower
         m_Mode: 2
         m_Arguments:
@@ -1327,8 +1328,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1504328189}
-        m_TargetAssemblyTypeName: Player.PlayerController, PlayerAssembly
+      - m_Target: {fileID: 1504328192}
+        m_TargetAssemblyTypeName: Player.PlayerPower, PlayerAssembly
         m_MethodName: SetPower
         m_Mode: 2
         m_Arguments:
@@ -2183,6 +2184,7 @@ GameObject:
   - component: {fileID: 1504328189}
   - component: {fileID: 1504328190}
   - component: {fileID: 1504328191}
+  - component: {fileID: 1504328192}
   m_Layer: 0
   m_Name: God
   m_TagString: Untagged
@@ -2219,12 +2221,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c6f0f0c62c42a7409b81fbcdfe571ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _powers:
-  - {fileID: 11400000, guid: 1e661f173ad9d094db8a94defcf1cb9a, type: 2}
-  - {fileID: 11400000, guid: 0789f3de0f82aa44f8d205057dd5865d, type: 2}
-  _currentPower: {fileID: 11400000, guid: 1e661f173ad9d094db8a94defcf1cb9a, type: 2}
   _pauseMenu: {fileID: 666106950}
-  _hud: {fileID: 666106951}
 --- !u!114 &1504328190
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2255,6 +2252,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _maxHeight: 10
   _minHeight: -5
+--- !u!114 &1504328192
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1504328187}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 288396645cae32840940950e7b8c2c5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _hud: {fileID: 666106951}
+  _powers:
+  - {fileID: 11400000, guid: 1e661f173ad9d094db8a94defcf1cb9a, type: 2}
+  - {fileID: 11400000, guid: 0789f3de0f82aa44f8d205057dd5865d, type: 2}
+  _currentPower: {fileID: 11400000, guid: 1e661f173ad9d094db8a94defcf1cb9a, type: 2}
 --- !u!1 &1606726378
 GameObject:
   m_ObjectHideFlags: 0

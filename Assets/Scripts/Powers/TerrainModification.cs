@@ -36,11 +36,11 @@ namespace Powers
                 return false;
 
             MeshCollider meshCollider = hit.collider as MeshCollider;
-            if (meshCollider == null)
+            if (!meshCollider)
                 return false;
             
             Chunk chunk = meshCollider.GetComponent<Chunk>();
-            if (chunk == null)
+            if (!chunk)
                  return false;
             
             LODMeshes[] meshes = chunk.GetLODMeshes();
