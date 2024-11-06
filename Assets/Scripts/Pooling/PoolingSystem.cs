@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/*I didn't manage to make this pooling system works with my chunks, because I needed to save the chunk's state*/
+
 namespace Pooling
 {
     public class PoolingSystem : MonoBehaviour

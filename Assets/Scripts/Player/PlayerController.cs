@@ -13,11 +13,13 @@ namespace Player
     [RequireComponent(typeof(CameraMovement), typeof(TerrainModification))]
     public class PlayerController : MonoBehaviour
     {
-        [SerializeField] private PauseMenu _pauseMenu = default;
+        [SerializeField] private GameObject _menu = default;
 
         private CameraMovement _cameraMovement;
         private TerrainModification _terrainModification;
         private PlayerPower _playerPower;
+        private PauseMenu _pauseMenu;
+        private HUD _hud;
         private InputState _inputState = InputState.InGame;
 
         // Start is called before the first frame update
@@ -26,6 +28,8 @@ namespace Player
             _cameraMovement = GetComponent<CameraMovement>();
             _terrainModification = GetComponent<TerrainModification>();
             _playerPower = GetComponent<PlayerPower>();
+            _pauseMenu = _menu.GetComponent<PauseMenu>();
+            _hud = _menu.GetComponent<HUD>();
             PauseMenu.PauseGameEvent += ChangeInputState;
         }
 
@@ -59,7 +63,7 @@ namespace Player
         {
             if (CustomInputSystem.GetKeyDown("SpellBar"))
             {
-                Debug.Log("SpellBar pressed");
+                _hud.AnimateMenu();
             }
         }
 

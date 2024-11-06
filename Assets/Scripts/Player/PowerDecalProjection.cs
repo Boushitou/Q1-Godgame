@@ -22,15 +22,15 @@ namespace Player
             
             SetUpDecal(_playerPower.CurrentPower);
 
-            _playerPower.PowerChangeEvent += SetUpDecal;
-            PauseMenu.PauseGameEvent += OnMoveDecal;
+            PlayerPower.PowerChangeEvent += SetUpDecal;
+            PauseMenu.PauseGameEvent += OnEnableDecal;
             
         }
 
         private void OnDestroy()
         {
-            _playerPower.PowerChangeEvent -= SetUpDecal;
-            PauseMenu.PauseGameEvent -= OnMoveDecal;
+            PlayerPower.PowerChangeEvent -= SetUpDecal;
+            PauseMenu.PauseGameEvent -= OnEnableDecal;
         }
 
         private void Update()
@@ -46,7 +46,7 @@ namespace Player
             
             if (currentPower.DecalTexture != null)
             {
-                _decalProjector.material.SetTexture("Base_Map", currentPower.DecalTexture);  
+                _decalProjector.material.SetTexture("_Base_Map", currentPower.DecalTexture);  
                 Debug.Log("Decal texture set");
             }
         }
@@ -64,7 +64,7 @@ namespace Player
             }
         }
 
-        private void OnMoveDecal(bool isPaused)
+        private void OnEnableDecal(bool isPaused)
         {
             _isShown = !isPaused;
             _decalProjector.enabled = !isPaused;

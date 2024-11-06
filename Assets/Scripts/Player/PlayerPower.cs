@@ -16,11 +16,12 @@ namespace Player
         private int _currentFaith;
         
         public delegate void OnPowerChange(Power power);
-        public event OnPowerChange PowerChangeEvent;
+        public static event OnPowerChange PowerChangeEvent;
 
         private void Start()
         {
             _currentFaith = _totalFaith;
+            _hud.UpdatePowerIcon(_currentPower.Icon);
         }
 
         public void UsePower(TerrainModification terrainModification)
@@ -41,6 +42,7 @@ namespace Player
         public void SetPower(Power power)
         {
             _currentPower = power;
+            _hud.UpdatePowerIcon(power.Icon);
             PowerChangeEvent?.Invoke(_currentPower);
         }
     }
