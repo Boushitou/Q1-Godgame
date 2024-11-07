@@ -30,13 +30,8 @@ namespace Player
             _playerPower = GetComponent<PlayerPower>();
             _pauseMenu = _menu.GetComponent<PauseMenu>();
             _hud = _menu.GetComponent<HUD>();
-            PauseMenu.PauseGameEvent += ChangeInputState;
         }
-
-        private void OnDestroy()
-        {
-            PauseMenu.PauseGameEvent -= ChangeInputState;
-        }
+        
 
         // Update is called once per frame
         void Update()
@@ -105,11 +100,6 @@ namespace Player
             {
                 _playerPower.UsePower(_terrainModification);
             }
-        }
-
-        private void ChangeInputState(bool isPaused)
-        {
-            _inputState = isPaused ? InputState.InMenu : InputState.InGame;
         }
     }
 }

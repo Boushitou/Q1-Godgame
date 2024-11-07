@@ -47,7 +47,7 @@ namespace TerrainGen
             gameObject.layer = LayerMask.NameToLayer("Ground");
         }
 
-        public void UpdateLOD(float distance)
+        public void UpdateLOD(float distance, float minLODDistance)
         {
             _refreshTime += Time.deltaTime;
             if (_refreshTime < _refreshRate)
@@ -56,13 +56,13 @@ namespace TerrainGen
             Mesh newMesh = null;
             int lodIndex = 0;
 
-            if (distance < _terrainData.MinLODDIstance)
+            if (distance < minLODDistance)
             {
                 newMesh = _lodMeshes[0].Mesh;
                 lodIndex = 0;
                 SetTreeVisibility(true);
             }
-            else if (distance < _terrainData.MinLODDIstance * 2f)
+            else if (distance < minLODDistance * 2f)
             {
                 newMesh = _lodMeshes[1].Mesh;
                 lodIndex = 1;

@@ -10,8 +10,8 @@ namespace TerrainGen
 {
     public class TerrainGeneration : MonoBehaviour
     {
-        [Header("Mesh Generation")] 
-        public TerrainData terrainData;
+        [FormerlySerializedAs("terrainData")] [Header("Mesh Generation")] 
+        public TerrainData TerrainData;
         
         [FormerlySerializedAs("ChunkPrefab")]
         [Header("Chunk Generation")]
@@ -25,18 +25,18 @@ namespace TerrainGen
         private Dictionary<Vector2Int, GameObject> _chunks = new Dictionary<Vector2Int, GameObject>();
         private Dictionary<Vector2Int, ChunkData> _chunkDatas = new Dictionary<Vector2Int, ChunkData>();
         private List<Vector2Int> _currentlyVisibleChunks = new List<Vector2Int>();
-        private float maxChunkCoord = 0f;
-        private int numberOfChunks = 0;
+        private float _maxChunkCoord = 0f;
+        private int _numberOfChunks = 0;
 
         private void Awake()
         {
-            terrainData.Seed = (GameSettings.Seed + 14) % 10000; //range: 0 to 9999
+            TerrainData.Seed = (GameSettings.Seed + 14) % 10000; //range: 0 to 9999
         }
 
         private void Start()
         {
-            _chunkVisibleInViewDst = Mathf.RoundToInt(_viewDistance / terrainData.MeshSize);
-            maxChunkCoord = Mathf.RoundToInt(_maxChunksDistance / terrainData.MeshSize);
+            _chunkVisibleInViewDst = Mathf.RoundToInt(_viewDistance / TerrainData.MeshSize);
+            _maxChunkCoord = Mathf.RoundToInt(_maxChunksDistance / TerrainData.MeshSize);
             UpdateVisibleChunks();
         }
 
@@ -50,8 +50,8 @@ namespace TerrainGen
         {
             HashSet<Vector2Int> newVisibleChunks = new HashSet<Vector2Int>();
             
-            _currentChunkCoord.x = Mathf.RoundToInt(_camera.position.x / terrainData.MeshSize);
-            _currentChunkCoord.y = Mathf.RoundToInt(_camera.position.z / terrainData.MeshSize);
+            _currentChunkCoord.x = Mathf.RoundToInt(_camera.position.x / TerrainData.MeshSize);
+            _currentChunkCoord.y = Mathf.RoundToInt(_camera.position.z / TerrainData.MeshSize);
 
             for (int y = -_chunkVisibleInViewDst; y <= _chunkVisibleInViewDst; y++)
             {
@@ -59,7 +59,7 @@ namespace TerrainGen
                 {
                     Vector2Int viewedChunkCord = new Vector2Int(_currentChunkCoord.x + x, _currentChunkCoord.y + y);
                     
-                    if (viewedChunkCord.x > maxChunkCoord || viewedChunkCord.y > maxChunkCoord || viewedChunkCord.x < -maxChunkCoord || viewedChunkCord.y < -maxChunkCoord)
+                    if (viewedChunkCord.x > _maxChunkCoord || viewedChunkCord.y > _maxChunkCoord || viewedChunkCord.x < -_maxChunkCoord || viewedChunkCord.y < -_maxChunkCoord)
                         continue;
                     
                     newVisibleChunks.Add(viewedChunkCord);
@@ -128,7 +128,7 @@ namespace TerrainGen
                 if (chunk.TryGetComponent(out Chunk chunkComponent))
                 {
                     float distance = Vector3.Distance(_camera.transform.position, chunk.transform.position);
-                    chunkComponent.UpdateLOD(distance);
+                    chunkComponent.UpdateLOD(distance, TerrainData.MinLODDIstance);
                 }
             }
         }
@@ -136,13 +136,13 @@ namespace TerrainGen
         private IEnumerator CreateChunkAsync(Vector2Int chunkCoord)
         {
             GameObject chunk = Instantiate(_chunkPrefab,
-                new Vector3(chunkCoord.x * terrainData.MeshSize, 0, chunkCoord.y * terrainData.MeshSize), Quaternion.identity);
+                new Vector3(chunkCoord.x * TerrainData.MeshSize, 0, chunkCoord.y * TerrainData.MeshSize), Quaternion.identity);
             chunk.name = "Chunk";
             chunk.transform.SetParent(transform);
 
             if (chunk.TryGetComponent(out Chunk terrainGeneration))
             {
-                terrainGeneration.GenerateMeshes(terrainData);
+                terrainGeneration.GenerateMeshes(TerrainData);
                 _chunks.Add(chunkCoord, chunk);
             }
 
@@ -157,7 +157,7 @@ namespace TerrainGen
 
         public float GetBounds()
         {
-            return maxChunkCoord * terrainData.MeshSize;
+            return _maxChunkCoord * TerrainData.MeshSize;
         }
     }
     

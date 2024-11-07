@@ -15,12 +15,15 @@ namespace TerrainGen
         private List<Vector2> _uvs = new List<Vector2>();
         private List<Vector3> _normals = new List<Vector3>();
 
+        private int _skirtSize;
+
         private readonly float _meshSize;
 
         public LODMeshes(int gridSize, float distanceTreshold, TerrainData terrainData, Vector3[,] heightmap)
         {
             DistanceTreshold = distanceTreshold;
             _meshSize = terrainData.MeshSize;
+            _skirtSize = gridSize;
             Mesh = GenerateMesh(gridSize, terrainData, heightmap);
         }
 
