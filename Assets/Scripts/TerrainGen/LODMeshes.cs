@@ -15,15 +15,12 @@ namespace TerrainGen
         private List<Vector2> _uvs = new List<Vector2>();
         private List<Vector3> _normals = new List<Vector3>();
 
-        private int _skirtSize;
-
         private readonly float _meshSize;
 
         public LODMeshes(int gridSize, float distanceTreshold, TerrainData terrainData, Vector3[,] heightmap)
         {
             DistanceTreshold = distanceTreshold;
             _meshSize = terrainData.MeshSize;
-            _skirtSize = gridSize;
             Mesh = GenerateMesh(gridSize, terrainData, heightmap);
         }
 
@@ -31,47 +28,14 @@ namespace TerrainGen
         {
             CreateVertices(heightmap, gridSize);
             CreateTriangles(gridSize);
-            // CreateWaterVertice(gridSize, terrainData);
-            // CreateWaterTriangle(gridSize);
+            CreateWaterVertice(gridSize, terrainData);
+            CreateWaterTriangles(gridSize);
             CreateUvs(gridSize, terrainData);
 
             Mesh mesh = new Mesh();
             SetMesh(mesh);
             
             return mesh;
-        }
-
-        private void CreateWaterTriangle(int gridSize)
-        {
-            _waterTriangles.Clear();
-            
-            for (int i = 0; i < gridSize - 1; i++)
-            {
-                for (int j = 0; j < gridSize - 1; j++)
-                {
-                    int cornerIndex = i + j * gridSize;
-                    
-                    _waterTriangles.Add(cornerIndex + _vertices.Count);
-                    _waterTriangles.Add(cornerIndex + 1 + _vertices.Count);
-                    _waterTriangles.Add(cornerIndex + 1 + gridSize + _vertices.Count);
-
-                    _waterTriangles.Add(cornerIndex + _vertices.Count);
-                    _waterTriangles.Add(cornerIndex + 1 + gridSize + _vertices.Count);
-                    _waterTriangles.Add(cornerIndex + gridSize + _vertices.Count);
-                }
-            }
-        }
-
-        private void CreateWaterVertice(int gridSize, TerrainData terrainData)
-        {
-            float step = terrainData.MeshSize / (gridSize - 1);
-            for (int i = 0; i < gridSize; i++)
-            {
-                for (int j = 0; j < gridSize; j++)
-                {
-                    _vertices.Add(new Vector3(i * step, 0, j * step));
-                }
-            }
         }
 
         private void SetMesh(Mesh mesh)
@@ -101,8 +65,6 @@ namespace TerrainGen
         
         private void CreateTriangles(int gridSize)
         {
-            _triangles.Clear();
-
             for (int i = 0; i < gridSize - 1; i++)
             {
                 for (int j = 0; j < gridSize - 1; j++)
@@ -119,10 +81,53 @@ namespace TerrainGen
                 }
             }
         }
+
+        private void CreateWaterVertice(int gridSize, TerrainData terrainData)
+        {
+            float step = terrainData.MeshSize / (gridSize - 1);
+            for (int i = 0; i < gridSize; i++)
+            {
+                for (int j = 0; j < gridSize; j++)
+                {
+                    _vertices.Add(new Vector3(i * step, terrainData.WaterLevel, j * step));
+                }
+            }
+        }
+        
+        private void CreateWaterTriangles(int gridSize)
+        {
+            _waterTriangles.Clear();
+
+            int offset = gridSize * gridSize; // Offset for water vertices
+
+            for (int i = 0; i < gridSize - 1; i++)
+            {
+                for (int j = 0; j < gridSize - 1; j++)
+                {
+                    int cornerIndex = i + j * gridSize;
+
+                    _waterTriangles.Add(cornerIndex + offset);
+                    _waterTriangles.Add(cornerIndex + 1 + offset);
+                    _waterTriangles.Add(cornerIndex + 1 + gridSize + offset);
+
+                    _waterTriangles.Add(cornerIndex + offset);
+                    _waterTriangles.Add(cornerIndex + 1 + gridSize + offset);
+                    _waterTriangles.Add(cornerIndex + gridSize + offset);
+                }
+            }
+        }
         
         private void CreateUvs(int gridSize, TerrainData terrainData)
         {
             float step = terrainData.MeshSize / (gridSize - 1);
+            for (int i = 0; i < gridSize; i++)
+            {
+                for (int j = 0; j < gridSize; j++)
+                {
+                    Vector2 uv = new Vector2(i / step, j / step);
+                    _uvs.Add(uv);
+                }
+            }
             for (int i = 0; i < gridSize; i++)
             {
                 for (int j = 0; j < gridSize; j++)
