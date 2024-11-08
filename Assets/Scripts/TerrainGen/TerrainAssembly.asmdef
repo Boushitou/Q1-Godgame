@@ -2,6 +2,7 @@
 	"name": "TerrainAssembly",
 	"references": [
 		"DataAssembly",
-		"PoolingAssembly"
+		"PoolingAssembly",
+		"UtilitiesAssembly"
 	]
 }

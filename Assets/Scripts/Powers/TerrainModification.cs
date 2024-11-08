@@ -45,7 +45,7 @@ namespace Powers
             
             LODMeshes[] meshes = chunk.GetLODMeshes();
             
-            _targetHeight = GetTargetHeight(GetVerticesInRangeInMesh(meshes[0].Mesh.vertices, meshCollider, hit.point), direction);
+            _targetHeight = GetTargetHeight(GetVerticesInRangeInMesh(meshes[0].Mesh.vertices, meshCollider, hit.point, chunk), direction);
             
             for (int lodIndex = 0; lodIndex < meshes.Length; lodIndex++)
             {
@@ -111,7 +111,7 @@ namespace Powers
 
         private void ModifyVertices(Vector3[] vertices, MeshCollider meshCollider, Vector3 hitPoint, Vector3 direction, bool isMainMesh, Chunk chunk)
         {
-            List<Vector3> verticesInRange = GetVerticesInRangeInMesh(vertices, meshCollider, hitPoint);
+            List<Vector3> verticesInRange = GetVerticesInRangeInMesh(vertices, meshCollider, hitPoint, chunk);
             
              if (isMainMesh && TerrainIsFlat(verticesInRange))
              {
@@ -145,12 +145,14 @@ namespace Powers
             }
         }
 
-        private List<Vector3> GetVerticesInRangeInMesh(Vector3[] vertices, MeshCollider meshCollider, Vector3 hitPoint)
+        private List<Vector3> GetVerticesInRangeInMesh(Vector3[] vertices, MeshCollider meshCollider, Vector3 hitPoint, Chunk chunk)
         {
             List<Vector3> verticesInRange = new List<Vector3>();
             
             for (int i = 0; i < vertices.Length; i++)
             {
+                if (chunk.IsVerticeAtWaterLevel(vertices[i]))
+                    continue;
                 Vector3 worldVertexPos = meshCollider.transform.TransformPoint(vertices[i]);
                 float distance = Vector3.Distance(worldVertexPos, hitPoint);
 

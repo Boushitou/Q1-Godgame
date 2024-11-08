@@ -34,9 +34,7 @@ namespace Player
             if (!powerSuccessful)
                 return;
                 
-            _currentFaith = _currentFaith - _currentPower.FaithCost < 0 ? 0 : _currentFaith - _currentPower.FaithCost;    
-                
-            _hud.UpdateFaithBar(_currentFaith);
+            //_currentFaith = _currentFaith - _currentPower.FaithCost < 0 ? 0 : _currentFaith - _currentPower.FaithCost;
         }
         
         public void SetPower(Power power)

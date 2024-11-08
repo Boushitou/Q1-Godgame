@@ -28,6 +28,7 @@ namespace TerrainGen
             _meshCollider = GetComponent<MeshCollider>();
             _terrainData = terrainData;
             _heightMapGenerator = new HeightMapGenerator(_terrainData, transform, _terrainData.GridSize);
+            int skirtedGridSize = _terrainData.GridSize + 2;
             Vector3[,] heightmap = _heightMapGenerator.GetHeightMap();
             
             for (int i = 0; i < _lodMeshes.Length; i++)

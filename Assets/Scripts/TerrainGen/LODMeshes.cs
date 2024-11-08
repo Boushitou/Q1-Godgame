@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Utilies;
 
 namespace TerrainGen
 {
@@ -16,6 +17,7 @@ namespace TerrainGen
         private List<Vector3> _normals = new List<Vector3>();
 
         private readonly float _meshSize;
+        private int _skirtedGridSize;
 
         public LODMeshes(int gridSize, float distanceTreshold, TerrainData terrainData, Vector3[,] heightmap)
         {
@@ -53,14 +55,49 @@ namespace TerrainGen
         private void CreateVertices(Vector3[,] heightmap, int gridSize)
         {
             _vertices.Clear();
+            //Vector3[,] positions = new Vector3[gridSize, gridSize];
             
             for (int i = 0; i < gridSize; i++)
             {
                 for (int j = 0; j < gridSize; j++)
                 {
-                    _vertices.Add(heightmap[i, j]);
+                    Vector3 vertex = heightmap[i, j];
+                    _vertices.Add(vertex);
+                    //positions[i, j] = vertex;
                 }
             }
+
+            #region Skirting Attempt
+
+            // int index = 0;
+            //
+            //  for (int i = 0; i < gridSize; i++)
+            //  {
+            //      for (int j = 0; j < gridSize; j++)
+            //      {
+            //          if (i == 0 && j == 0)
+            //              _vertices[index] = positions[1, 1].SetY(0); // Bottom-left corner
+            //          else if (i == 0 && j == gridSize - 1)
+            //              _vertices[index] = positions[1, gridSize - 2].SetY(0); // Top-left corner
+            //          else if (i == gridSize - 1 && j == 0)
+            //              _vertices[index] = positions[gridSize - 2, 1].SetY(0); // Bottom-right corner
+            //          else if (i == gridSize - 1 && j == gridSize - 1)
+            //              _vertices[index] = positions[gridSize - 2, gridSize - 2].SetY(0); // Top-right corner
+            //          else if (i == 0)
+            //              _vertices[index] = positions[1, j].SetY(0); // Left edge
+            //          else if (j == 0)
+            //              _vertices[index] = positions[i, 1].SetY(0); // Bottom edge
+            //          else if (i == gridSize - 1)
+            //              _vertices[index] = positions[gridSize - 2, j].SetY(0); // Right edge
+            //          else if (j == gridSize - 1)
+            //              _vertices[index] = positions[i, gridSize - 2].SetY(0); // Top edge
+            //
+            //
+            //          index++;
+            //      }
+            //}
+
+            #endregion Skirting attempt
         }
         
         private void CreateTriangles(int gridSize)

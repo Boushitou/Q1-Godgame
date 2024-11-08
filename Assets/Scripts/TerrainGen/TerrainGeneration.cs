@@ -135,9 +135,9 @@ namespace TerrainGen
 
         private IEnumerator CreateChunkAsync(Vector2Int chunkCoord)
         {
-            GameObject chunk = Instantiate(_chunkPrefab,
-                new Vector3(chunkCoord.x * TerrainData.MeshSize, 0, chunkCoord.y * TerrainData.MeshSize), Quaternion.identity);
-            chunk.name = "Chunk";
+            Vector3 chunkPos = new Vector3(chunkCoord.x * TerrainData.MeshSize, 0, chunkCoord.y * TerrainData.MeshSize);
+            GameObject chunk = Instantiate(_chunkPrefab, chunkPos, Quaternion.identity);
+            chunk.name = $"Chunk {chunkCoord.x}, {chunkCoord.y}";
             chunk.transform.SetParent(transform);
 
             if (chunk.TryGetComponent(out Chunk terrainGeneration))
