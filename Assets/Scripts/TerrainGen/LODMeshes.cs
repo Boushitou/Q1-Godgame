@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Utilies;
+using System.Threading;
 
 namespace TerrainGen
 {
@@ -18,6 +18,7 @@ namespace TerrainGen
 
         private readonly float _meshSize;
         private int _skirtedGridSize;
+        private Thread _thread;
 
         public LODMeshes(int gridSize, float distanceTreshold, TerrainData terrainData, Vector3[,] heightmap)
         {
@@ -69,33 +70,33 @@ namespace TerrainGen
 
             #region Skirting Attempt
 
-            // int index = 0;
+            //  int index = 0;
             //
-            //  for (int i = 0; i < gridSize; i++)
-            //  {
-            //      for (int j = 0; j < gridSize; j++)
-            //      {
-            //          if (i == 0 && j == 0)
-            //              _vertices[index] = positions[1, 1].SetY(0); // Bottom-left corner
-            //          else if (i == 0 && j == gridSize - 1)
-            //              _vertices[index] = positions[1, gridSize - 2].SetY(0); // Top-left corner
-            //          else if (i == gridSize - 1 && j == 0)
-            //              _vertices[index] = positions[gridSize - 2, 1].SetY(0); // Bottom-right corner
-            //          else if (i == gridSize - 1 && j == gridSize - 1)
-            //              _vertices[index] = positions[gridSize - 2, gridSize - 2].SetY(0); // Top-right corner
-            //          else if (i == 0)
-            //              _vertices[index] = positions[1, j].SetY(0); // Left edge
-            //          else if (j == 0)
-            //              _vertices[index] = positions[i, 1].SetY(0); // Bottom edge
-            //          else if (i == gridSize - 1)
-            //              _vertices[index] = positions[gridSize - 2, j].SetY(0); // Right edge
-            //          else if (j == gridSize - 1)
-            //              _vertices[index] = positions[i, gridSize - 2].SetY(0); // Top edge
+            //   for (int i = 0; i < gridSize; i++)
+            //   {
+            //       for (int j = 0; j < gridSize; j++)
+            //       {
+            //           if (i == 0 && j == 0)
+            //               _vertices[index] = positions[1, 1].SetY(0); // Bottom-left corner
+            //           else if (i == 0 && j == gridSize - 1)
+            //               _vertices[index] = positions[1, gridSize - 2].SetY(0); // Top-left corner
+            //           else if (i == gridSize - 1 && j == 0)
+            //               _vertices[index] = positions[gridSize - 2, 1].SetY(0); // Bottom-right corner
+            //           else if (i == gridSize - 1 && j == gridSize - 1)
+            //               _vertices[index] = positions[gridSize - 2, gridSize - 2].SetY(0); // Top-right corner
+            //           else if (i == 0)
+            //               _vertices[index] = positions[1, j].SetY(0); // Left edge
+            //           else if (j == 0)
+            //               _vertices[index] = positions[i, 1].SetY(0); // Bottom edge
+            //           else if (i == gridSize - 1)
+            //               _vertices[index] = positions[gridSize - 2, j].SetY(0); // Right edge
+            //           else if (j == gridSize - 1)
+            //               _vertices[index] = positions[i, gridSize - 2].SetY(0); // Top edge
             //
             //
-            //          index++;
-            //      }
-            //}
+            //           index++;
+            //       }
+            // }
 
             #endregion Skirting attempt
         }
