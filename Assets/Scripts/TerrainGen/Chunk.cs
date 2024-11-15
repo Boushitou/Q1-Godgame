@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Pooling;
 using UnityEngine;
 
 
@@ -17,7 +18,7 @@ namespace TerrainGen
         private HeightMapGenerator _heightMapGenerator;
 
         private readonly float _treeModifierRange = 2f;
-        public ChunkData ChunkData;
+        public ChunkData _chunkData;
 
         private float _refreshRate = 0.5f;
         private float _refreshTime = 0f;
@@ -73,8 +74,7 @@ namespace TerrainGen
             {
                 newMesh = _lodMeshes[2].Mesh;
                 lodIndex = 2;
-                foreach (GameObject tree in _trees)
-                    SetTreeVisibility(false);
+                SetTreeVisibility(false);
             }
 
             if (CurrentMesh != newMesh)
@@ -86,29 +86,6 @@ namespace TerrainGen
 
             _refreshTime = 0f;
         }
-        
-        // private void AverageNormalsWithNeighbor(Mesh mesh, int lodIndex)
-        // {
-        //     Vector3[] normals = mesh.normals;
-        //     List<Vector3> edgeNormals = GetEdgeNormals(normals.Length);
-        //
-        //     foreach (Chunk neighbor in Neighbors.Values)
-        //     {
-        //         Mesh neighborMesh = neighbor.GetLODMeshes()[lodIndex];
-        //         Vector3[] neighborNormals = neighborMesh.normals;
-        //         List<Vector3> neighborEdgeNormals = neighbor.GetEdgeNormals(neighborNormals.Length);
-        //         
-        //         for (int i = 0; i < edgeNormals.Count; i++)
-        //         {
-        //             if (edgeNormals.Contains(normals[i]) && neighborEdgeNormals.Contains(neighborNormals[i]))
-        //             {
-        //                 normals[i] = (normals[i] + neighborNormals[i]) / 2f;
-        //             }
-        //         }
-        //     }
-        //
-        //     mesh.normals = normals;
-        // }
         
         private void GenerateTrees()
         {
@@ -132,7 +109,6 @@ namespace TerrainGen
                 if (position.y < 5f && position.y > 3f)
                 {
                     GameObject tree = Instantiate(_terrainData.TreePrefab, position, Quaternion.identity, transform);
-                    tree.transform.SetParent(gameObject.transform);
                     
                     _trees.Add(tree);
                 }
@@ -150,12 +126,23 @@ namespace TerrainGen
         
         private void SetTreeVisibility(bool visible)
         {
+            return;
             foreach (GameObject tree in _trees)
             {
-                if (tree.activeSelf == visible)
-                    return;
-                
-                tree.SetActive(visible);
+                if (visible)
+                {
+                    if (tree.activeSelf)
+                        return;
+                    
+                    ObjectPoolManager.SpawnObject(tree, tree.transform.position, tree.transform.rotation, ObjectPoolManager.PoolType.Tree);
+                }
+                else
+                {
+                    if (!tree.activeSelf)
+                        return;
+                    
+                    ObjectPoolManager.ReturnObjectPool(tree);
+                }
             }
         }
 
@@ -180,7 +167,71 @@ namespace TerrainGen
 
         public void SaveState()
         {
-            ChunkData.Meshes = _lodMeshes;
+            _chunkData.Meshes = _lodMeshes;
+            _chunkData.Trees = new List<TreeData>();
+            foreach (GameObject tree in _trees)
+            {
+                TreeData treeData = new TreeData
+                {
+                    Position = tree.transform.position,
+                    Rotation = tree.transform.rotation,
+                    Scale = tree.transform.localScale // Optional, if you need scale
+                };
+                _chunkData.Trees.Add(treeData);
+            }
+        }
+
+        public ChunkData GetState()
+        {
+            return _chunkData;
+        }
+
+        public void LoadState(ChunkData chunkData, TerrainData terrainData)
+        {
+            _terrainData = terrainData;
+            _meshFilter = GetComponent<MeshFilter>();
+            _meshCollider = GetComponent<MeshCollider>();
+            
+            _chunkData = chunkData;
+            _lodMeshes = _chunkData.Meshes;
+
+            // Ensure all LOD meshes are properly set
+            for (int i = 0; i < _lodMeshes.Length; i++)
+            {
+                if (_lodMeshes[i] != null)
+                {
+                    _lodMeshes[i].Mesh.RecalculateBounds();
+                }
+            }
+            
+            foreach (TreeData treeData in _chunkData.Trees)
+            {
+                GameObject newTree = Instantiate(_terrainData.TreePrefab);
+                newTree.transform.position = treeData.Position;
+                newTree.transform.rotation = treeData.Rotation;
+                newTree.transform.localScale = treeData.Scale;
+                _trees.Add(newTree);
+            }
+            
+            _meshFilter.mesh = _lodMeshes[^1].Mesh;
+            CurrentMesh = _lodMeshes[^1].Mesh;
+            _meshCollider.sharedMesh = _lodMeshes[^1].Mesh;
+
+            gameObject.layer = LayerMask.NameToLayer("Ground");
+        }
+
+        public void Reset()
+        {
+            _meshFilter.mesh.Clear();
+            _meshCollider.sharedMesh = null;
+            _lodMeshes = new LODMeshes[3];
+
+            foreach (GameObject tree in _trees)
+            {
+                Destroy(tree);
+            }
+            
+            _trees.Clear();
         }
     }
 }

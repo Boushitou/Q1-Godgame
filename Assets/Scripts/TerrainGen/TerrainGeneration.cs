@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -63,14 +62,11 @@ namespace TerrainGen
                         continue;
                     
                     newVisibleChunks.Add(viewedChunkCord);
+                    
 
-                    if (_chunks.ContainsKey(viewedChunkCord))
+                    if (!_chunks.ContainsKey(viewedChunkCord))
                     {
-                        _chunks[viewedChunkCord].SetActive(true);
-                    }
-                    else
-                    {
-                        StartCoroutine(CreateChunkAsync(viewedChunkCord));
+                        CreateChunk(viewedChunkCord);
                     }
                     
                     UpdateChunkNeighbors(viewedChunkCord);
@@ -81,8 +77,11 @@ namespace TerrainGen
             {
                 if (!newVisibleChunks.Contains(coord))
                 {
-                    _chunks[coord].SetActive(false);
-                    _chunks.Remove(coord);
+                    Chunk chunk = _chunks[coord].GetComponent<Chunk>();
+                    _chunkDatas[coord] = chunk.GetState();
+                    chunk.Reset();
+                    ObjectPoolManager.ReturnObjectPool(_chunks[coord]);
+                   _chunks.Remove(coord);
                 }
             }
             
@@ -133,26 +132,27 @@ namespace TerrainGen
             }
         }
 
-        private IEnumerator CreateChunkAsync(Vector2Int chunkCoord)
+        private void CreateChunk(Vector2Int chunkCoord)
         {
+            //string chunkName = $"Chunk {chunkCoord.x}, {chunkCoord.y}";
             Vector3 chunkPos = new Vector3(chunkCoord.x * TerrainData.MeshSize, 0, chunkCoord.y * TerrainData.MeshSize);
-            GameObject chunk = Instantiate(_chunkPrefab, chunkPos, Quaternion.identity);
-            chunk.name = $"Chunk {chunkCoord.x}, {chunkCoord.y}";
-            chunk.transform.SetParent(transform);
-
+            GameObject chunk = ObjectPoolManager.SpawnObject(_chunkPrefab, chunkPos, Quaternion.identity, ObjectPoolManager.PoolType.Chunk);
+            //chunk.name = chunkName;
+            //$"Chunk {chunkCoord.x}, {chunkCoord.y}"
+            
             if (chunk.TryGetComponent(out Chunk terrainGeneration))
             {
-                terrainGeneration.GenerateMeshes(TerrainData);
-                _chunks.Add(chunkCoord, chunk);
+                if (_chunkDatas.ContainsKey(chunkCoord))
+                {
+                    terrainGeneration.LoadState(_chunkDatas[chunkCoord],TerrainData);;
+                    _chunks.Add(chunkCoord, chunk);
+                }
+                else
+                {
+                    terrainGeneration.GenerateMeshes(TerrainData);
+                    _chunks.Add(chunkCoord, chunk);
+                }
             }
-
-            yield return null;
-        }
-
-        private void SaveChunkData(Vector2Int chunkCoord)
-        {
-            Chunk chunk = _chunks[chunkCoord].GetComponent<Chunk>();
-            _chunkDatas[chunkCoord] = chunk.ChunkData;
         }
 
         public float GetBounds()
@@ -191,6 +191,13 @@ namespace TerrainGen
     public struct ChunkData
     {
         public LODMeshes[] Meshes;
-        public List<GameObject> Trees;
+        public List<TreeData> Trees;
+    }
+
+    public struct TreeData
+    {
+        public Vector3 Position;
+        public Quaternion Rotation;
+        public Vector3 Scale;
     }
 }

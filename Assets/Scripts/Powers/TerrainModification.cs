@@ -73,6 +73,7 @@ namespace Powers
             }
             meshCollider.sharedMesh = chunk.CurrentMesh;
             chunk.ReajustTrees();
+            chunk.SaveState();
             return true;
         }
 

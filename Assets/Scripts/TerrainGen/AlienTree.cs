@@ -1,4 +1,6 @@
+using System;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace  TerrainGen
 {
@@ -10,6 +12,11 @@ namespace  TerrainGen
         private void Start()
         {
             SetBodyAndPosition();
+            ReajustPosition();
+        }
+
+        private void OnEnable()
+        {
             ReajustPosition();
         }
 
