@@ -1,7 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using System.Threading;
+using UnityEngine;
 
 namespace TerrainGen
 {
@@ -18,16 +19,17 @@ namespace TerrainGen
 
         private readonly float _meshSize;
         private int _skirtedGridSize;
-        private Thread _thread;
 
         public LODMeshes(int gridSize, float distanceTreshold, TerrainData terrainData, Vector3[,] heightmap)
         {
+            Mesh = new Mesh();
             DistanceTreshold = distanceTreshold;
             _meshSize = terrainData.MeshSize;
-            Mesh = GenerateMesh(gridSize, terrainData, heightmap);
+            Thread thread = new Thread(() => GenerateMesh(gridSize, terrainData, heightmap));
+            thread.Start();
         }
 
-        private Mesh GenerateMesh(int gridSize, TerrainData terrainData, Vector3[,] heightmap)
+        private void GenerateMesh(int gridSize, TerrainData terrainData, Vector3[,] heightmap)
         {
             CreateVertices(heightmap, gridSize);
             CreateTriangles(gridSize);
@@ -35,20 +37,18 @@ namespace TerrainGen
             CreateWaterTriangles(gridSize);
             CreateUvs(gridSize, terrainData);
 
-            Mesh mesh = new Mesh();
-            SetMesh(mesh);
-            
-            return mesh;
+            UnityMainThreadDispatcher.Enqueue(SetMesh);
         }
 
-        private void SetMesh(Mesh mesh)
+        private void SetMesh()
         {
-            mesh.subMeshCount = 2;
-            mesh.SetVertices(_vertices);
-            mesh.SetTriangles(_triangles, 0);
-            mesh.SetTriangles(_waterTriangles, 1);
-            mesh.SetUVs(0, _uvs);
-            mesh.RecalculateNormals();  
+            Mesh.subMeshCount = 2;
+            Mesh.SetVertices(_vertices);
+            Mesh.SetTriangles(_triangles, 0);
+            Mesh.SetTriangles(_waterTriangles, 1);
+            Mesh.SetUVs(0, _uvs);
+            Mesh.RecalculateNormals();  
+
             //_normals = mesh.normals.ToList();
             //AverageNormalsWithNeighbor(mesh, i);
         }
