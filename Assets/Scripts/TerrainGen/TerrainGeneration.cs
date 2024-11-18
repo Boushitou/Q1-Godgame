@@ -78,6 +78,7 @@ namespace TerrainGen
                 if (!newVisibleChunks.Contains(coord))
                 {
                     Chunk chunk = _chunks[coord].GetComponent<Chunk>();
+                    chunk.SaveState();
                     _chunkDatas[coord] = chunk.GetState();
                     chunk.Reset();
                     ObjectPoolManager.ReturnObjectPool(_chunks[coord]);
@@ -192,12 +193,5 @@ namespace TerrainGen
     {
         public LODMeshes[] Meshes;
         public List<TreeData> Trees;
-    }
-
-    public struct TreeData
-    {
-        public Vector3 Position;
-        public Quaternion Rotation;
-        public Vector3 Scale;
     }
 }

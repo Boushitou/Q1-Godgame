@@ -10,7 +10,7 @@ namespace TerrainGen
         public Mesh CurrentMesh { get; private set; }
         public Dictionary<Vector2Int, Chunk> Neighbors = new Dictionary<Vector2Int, Chunk>();
         private LODMeshes[] _lodMeshes = new LODMeshes[3];
-        private List<GameObject> _trees = new List<GameObject>();
+        private List<AlienTree> _trees = new List<AlienTree>();
         
         private MeshFilter _meshFilter;
         private MeshCollider _meshCollider;
@@ -62,19 +62,16 @@ namespace TerrainGen
             {
                 newMesh = _lodMeshes[0].Mesh;
                 lodIndex = 0;
-                SetTreeVisibility(true);
             }
             else if (distance < minLODDistance * 2f)
             {
                 newMesh = _lodMeshes[1].Mesh;
                 lodIndex = 1;
-                SetTreeVisibility(true);
             }
             else
             {
                 newMesh = _lodMeshes[2].Mesh;
                 lodIndex = 2;
-                SetTreeVisibility(false);
             }
 
             if (CurrentMesh != newMesh)
@@ -109,8 +106,9 @@ namespace TerrainGen
                 if (position.y < 5f && position.y > 3f)
                 {
                     GameObject tree = Instantiate(_terrainData.TreePrefab, position, Quaternion.identity, transform);
-                    
-                    _trees.Add(tree);
+                    AlienTree alienTree = tree.GetComponent<AlienTree>();
+                    alienTree.InitBodyAndPosition();
+                    _trees.Add(alienTree);
                 }
             }
         }
@@ -123,35 +121,12 @@ namespace TerrainGen
             
             return points;
         }
-        
-        private void SetTreeVisibility(bool visible)
-        {
-            return;
-            foreach (GameObject tree in _trees)
-            {
-                if (visible)
-                {
-                    if (tree.activeSelf)
-                        return;
-                    
-                    ObjectPoolManager.SpawnObject(tree, tree.transform.position, tree.transform.rotation, ObjectPoolManager.PoolType.Tree);
-                }
-                else
-                {
-                    if (!tree.activeSelf)
-                        return;
-                    
-                    ObjectPoolManager.ReturnObjectPool(tree);
-                }
-            }
-        }
 
         public void ReajustTrees()
         {
-            foreach (GameObject tree in _trees)
+            foreach (AlienTree tree in _trees)
             {
-                AlienTree alienTree = tree.GetComponent<AlienTree>();
-                alienTree.ReajustPosition();
+                tree.ReajustPosition();
             }
         }
         
@@ -169,14 +144,10 @@ namespace TerrainGen
         {
             _chunkData.Meshes = _lodMeshes;
             _chunkData.Trees = new List<TreeData>();
-            foreach (GameObject tree in _trees)
+            _chunkData.Trees.Clear();
+            foreach (AlienTree tree in _trees)
             {
-                TreeData treeData = new TreeData
-                {
-                    Position = tree.transform.position,
-                    Rotation = tree.transform.rotation,
-                    Scale = tree.transform.localScale // Optional, if you need scale
-                };
+                TreeData treeData = tree.GetTreeData();
                 _chunkData.Trees.Add(treeData);
             }
         }
@@ -206,11 +177,10 @@ namespace TerrainGen
             
             foreach (TreeData treeData in _chunkData.Trees)
             {
-                GameObject newTree = Instantiate(_terrainData.TreePrefab);
-                newTree.transform.position = treeData.Position;
-                newTree.transform.rotation = treeData.Rotation;
-                newTree.transform.localScale = treeData.Scale;
-                _trees.Add(newTree);
+                GameObject newTree = Instantiate(_terrainData.TreePrefab, transform);
+                AlienTree alienTree = newTree.GetComponent<AlienTree>();
+                alienTree.SetBodyAndPosition(treeData);
+                _trees.Add(alienTree);
             }
             
             _meshFilter.mesh = _lodMeshes[^1].Mesh;
@@ -226,9 +196,9 @@ namespace TerrainGen
             _meshCollider.sharedMesh = null;
             _lodMeshes = new LODMeshes[3];
 
-            foreach (GameObject tree in _trees)
+            foreach (AlienTree tree in _trees)
             {
-                Destroy(tree);
+                Destroy(tree.gameObject);
             }
             
             _trees.Clear();

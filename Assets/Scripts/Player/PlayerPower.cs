@@ -31,7 +31,7 @@ namespace Player
                 
             bool powerSuccessful = _currentPower.Invoke(terrainModification);
 
-            if (!powerSuccessful)
+            if (!powerSuccessful) //not useful since there is not need for a "faith value" for now
                 return;
                 
             //_currentFaith = _currentFaith - _currentPower.FaithCost < 0 ? 0 : _currentFaith - _currentPower.FaithCost;
