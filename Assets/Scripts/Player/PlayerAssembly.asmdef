@@ -1,7 +1,9 @@
 {
 	"name": "PlayerAssembly",
 	"references": [
-		"TerrainModifAssembly",
-		"PowersAssembly"
+		"PowersAssembly",
+		"TerrainAssembly",
+		"MenuAssembly",
+		"Unity.RenderPipelines.Universal.Runtime"
 	]
 }

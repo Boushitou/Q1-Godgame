@@ -1,13 +1,15 @@
 using UnityEngine;
-using TerrainModif;
 
 namespace Powers
 { 
     public abstract class Power : ScriptableObject
     {
-        public float FaithCost;
+        public int FaithCost;
+        public float Range;
         public float TotalCoolDown;
+        public Sprite Icon;
+        public Texture DecalTexture;
 
-        public abstract void Invoke(TerrainModification terrainModification);
+        public abstract bool Invoke(TerrainModification terrainModification);
     }  
 }

@@ -1,4 +1,3 @@
-using TerrainModif;
 using UnityEngine;
 
 namespace Powers
@@ -8,10 +7,9 @@ namespace Powers
     {
         public float ElevationAmount;
         
-        public override void Invoke(TerrainModification terrainModification)
+        public override bool Invoke(TerrainModification terrainModification)
         {
-            terrainModification.ElevateTerrain(ElevationAmount);
+            return terrainModification.ElevateTerrain(ElevationAmount, this);
         }
     }
-  
 }

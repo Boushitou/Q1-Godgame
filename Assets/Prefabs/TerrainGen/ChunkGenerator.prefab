@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &928991759468918268
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5128267260933036464}
+  - component: {fileID: 2228835798615108461}
+  m_Layer: 0
+  m_Name: ChunkGenerator
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5128267260933036464
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 928991759468918268}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2228835798615108461
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 928991759468918268}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 818f516e78644c04e8620a78cfdba1cc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  terrainData:
+    GridSize: 23
+    MeshSize: 16
+    Frequency: 0.03
+    HeightMultiplier: 2
+    Lacunarity: 1
+    Persistence: 1
+    OctaveCount: 6
+    Seed: 0
+    Terrace: 10
+    WaterLevel: 2
+    MinLODDIstance: 50
+    TreePrefab: {fileID: 7690933415444032754, guid: 32be367217d3a0d46b11b9d23485f669,
+      type: 3}
+    TreeZoneRadius: 10
+    TreeRadius: 7
+  _chunkPrefab: {fileID: 6311001271108563835, guid: b4aa4c002d5215448b7a5be5331eee96,
+    type: 3}
+  _camera: {fileID: 0}
+  _viewDistance: 150
+  _maxChunksDistance: 450
